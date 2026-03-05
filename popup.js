@@ -21,21 +21,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 4. クリップボードに書き込み
         // ポップアップが完全にフォーカスを得るまで少し待つ (フォーカスエラー対策)
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 150));
 
-        // フォーカスを強制してから、クリップボードAPIを試行
-        window.focus();
         try {
+            // まず最新の API を試行
             await navigator.clipboard.writeText(markdownLink);
         } catch (clipErr) {
-            // API が失敗した場合のフォールバック (古い手法)
-            console.warn('Navigator clipboard failed, using fallback:', clipErr);
+            // API が失敗した場合のフォールバック (確実に動作する古い手法)
             const textArea = document.createElement("textarea");
             textArea.value = markdownLink;
+
+            // 画面外に配置しつつフォーカスをあてる
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
             document.body.appendChild(textArea);
+
+            textArea.focus();
             textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
+
+            try {
+                document.execCommand("copy");
+            } catch (err) {
+                console.error('Fallback copy also failed:', err);
+            } finally {
+                document.body.removeChild(textArea);
+            }
         }
 
         // 5. 表示を「完了」に切り替え
