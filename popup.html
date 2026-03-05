@@ -5,33 +5,24 @@
     <meta charset="UTF-8">
     <style>
         body {
-            width: 150px;
+            width: 120px;
             padding: 10px;
             font-family: sans-serif;
             text-align: center;
-        }
-
-        button {
-            cursor: pointer;
-            padding: 8px;
-            width: 100%;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
+            margin: 0;
+            overflow: hidden;
         }
 
         #status {
-            font-size: 12px;
-            margin-top: 8px;
-            color: green;
+            font-size: 14px;
+            font-weight: bold;
+            color: #007bff;
         }
     </style>
 </head>
 
 <body>
-    <button id="copyBtn">Md形式でコピー</button>
-    <div id="status"></div>
+    <div id="status">Copying...</div>
     <script src="popup.js"></script>
 </body>
 

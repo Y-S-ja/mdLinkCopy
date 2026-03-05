@@ -1,24 +1,31 @@
-document.getElementById('copyBtn').addEventListener('click', async () => {
-    // 現在のタブを取得
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+async function copyLink() {
+    const status = document.getElementById('status');
 
-    // Markdown形式の文字列を作成
-    const markdownLink = `[${tab.title}](${tab.url})`;
-
-    // クリップボードに書き込み
     try {
+        // 1. 現在のタブ情報を取得
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        // 2. Markdown形式の文字列を作成
+        const markdownLink = `[${tab.title}](${tab.url})`;
+
+        // 3. クリップボードに書き込み
         await navigator.clipboard.writeText(markdownLink);
 
-        // 成功メッセージを表示
-        const status = document.getElementById('status');
-        status.textContent = 'コピー完了！';
+        // 4. 表示を「完了」に切り替え
+        status.textContent = 'Copied!';
+        status.style.color = 'green';
 
-        // 1秒後にポップアップを自動で閉じる
+        // 5. 0.7秒後にポップアップを自動で閉じる
         setTimeout(() => {
             window.close();
-        }, 1000);
+        }, 700);
 
     } catch (err) {
-        console.error('コピーに失敗しました', err);
+        console.error(err);
+        status.textContent = 'Error!';
+        status.style.color = 'red';
     }
-});
+}
+
+// ポップアップが開いたらすぐに実行
+copyLink();

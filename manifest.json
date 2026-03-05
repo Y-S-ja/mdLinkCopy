@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Markdown Link Copier",
-    "version": "1.0",
+    "version": "1.0.0",
     "description": "閲覧中のページをMarkdown形式でコピーします",
     "permissions": [
         "activeTab"
