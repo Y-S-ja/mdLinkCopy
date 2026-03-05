@@ -2,7 +2,14 @@ chrome.action.onClicked.addListener((tab) => {
     // スクリプト注入が禁止されているページを除外
     const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
     if (!tab.url || restrictedPrefixes.some(prefix => tab.url.startsWith(prefix))) {
-        console.warn('Cannot run on this page:', tab.url);
+        // 禁止ページではブラウザのシステム通知を表示
+        chrome.notifications.create({
+            type: 'basic',
+            // iconUrl: 'icon.png', // もしアイコンがあれば指定（なければ適宜。128x128などが一般的）
+            title: 'Quick Md Copy',
+            message: 'このページではコピーできません',
+            silent: true
+        });
         return;
     }
 
