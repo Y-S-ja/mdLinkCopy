@@ -9,7 +9,7 @@ chrome.action.onClicked.addListener((tab) => {
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: copyMarkdownLink,
-    });
+    }).catch(err => console.error('Script injection failed:', err));
 });
 
 // Webサイト側で実行される関数
