@@ -1,6 +1,8 @@
 chrome.action.onClicked.addListener((tab) => {
-    // 特殊なページでは実行しない
-    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('https://chrome.google.com/webstore')) {
+    // スクリプト注入が禁止されているページを除外
+    const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
+    if (!tab.url || restrictedPrefixes.some(prefix => tab.url.startsWith(prefix))) {
+        console.warn('Cannot run on this page:', tab.url);
         return;
     }
 
