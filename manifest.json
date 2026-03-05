@@ -4,7 +4,8 @@
     "version": "1.0.0",
     "description": "閲覧中のページをMarkdown形式でコピーします",
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "clipboardWrite"
     ],
     "action": {
         "default_popup": "popup.html"
