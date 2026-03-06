@@ -5,7 +5,7 @@ chrome.action.onClicked.addListener((tab) => {
         // 禁止ページではブラウザのシステム通知を表示
         chrome.notifications.create({
             type: 'basic',
-            iconUrl: 'icon192x192.png',
+            iconUrl: 'images/icon192x192.png',
             title: 'Quick Md Copy',
             message: 'このページではコピーできません',
             silent: true
