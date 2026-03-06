@@ -1,3 +1,31 @@
+// インストール時にコンテキストメニューを作成
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: "copy-selection-markdown",
+        title: "選択箇所へのMarkdownリンクをコピー",
+        contexts: ["selection"] // テキストを選択している時だけ表示
+    });
+});
+
+// コンテキストメニュー（右クリック）クリック時の処理
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "copy-selection-markdown") {
+        const selectionText = info.selectionText; // 選択されたテキスト
+        const pageUrl = info.pageUrl; // ページのURL
+
+        // 選択箇所を強調表示するためのフラグメントを作成
+        const fragment = `#:~:text=${encodeURIComponent(selectionText)}`;
+        const markdownLink = `[${tab.title}](${pageUrl}${fragment})`;
+
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: copyToClipboardWithNotice,
+            args: [markdownLink]
+        }).catch(err => console.error('Script injection failed:', err));
+    }
+});
+
+// 拡張機能アイコン（action）クリック時の処理
 chrome.action.onClicked.addListener((tab) => {
     // スクリプト注入が禁止されているページを除外
     const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
@@ -13,23 +41,20 @@ chrome.action.onClicked.addListener((tab) => {
         return;
     }
 
+    // アイコンクリック時はページ全体のリンクを作成
+    const markdownLink = `[${tab.title}](${tab.url})`;
+
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: copyMarkdownLink,
+        func: copyToClipboardWithNotice,
+        args: [markdownLink]
     }).catch(err => console.error('Script injection failed:', err));
 });
 
-// Webサイト側で実行される関数
-async function copyMarkdownLink() {
-    const title = document.title;
-    const url = window.location.href;
-    const markdownLink = `[${title}](${url})`;
-
+// Webサイト側で実行される共通のコピー＆通知関数
+async function copyToClipboardWithNotice(text) {
     try {
-        // モダンな Clipboard API を使用
-        await navigator.clipboard.writeText(markdownLink);
-
-        // 成功時のフィードバック表示
+        await navigator.clipboard.writeText(text);
         showNotice("Markdown Copied!", "#2ecc71");
     } catch (err) {
         console.error('Failed to copy: ', err);

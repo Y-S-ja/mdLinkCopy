@@ -6,7 +6,8 @@
     "permissions": [
         "activeTab",
         "scripting",
-        "notifications"
+        "notifications",
+        "contextMenus"
     ],
     "icons": {
         "16": "images/icon16x16.png",
