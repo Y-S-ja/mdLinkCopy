@@ -10,11 +10,11 @@ chrome.runtime.onInstalled.addListener(() => {
 // コンテキストメニュー（右クリック）クリック時の処理
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
-        const selectionText = info.selectionText; // 選択されたテキスト
+        const selectionText = safeSelectiveEncode(info.selectionText); // 選択されたテキスト
         const pageUrl = info.pageUrl.split('#')[0]; // ページのURL
 
         // 選択箇所を強調表示するためのフラグメントを作成
-        const fragment = `#:~:text=${encodeURIComponent(selectionText)}`;
+        const fragment = `#:~:text=${selectionText}`;
         const markdownLink = `[${tab.title}](${pageUrl}${fragment})`;
 
         chrome.scripting.executeScript({
@@ -92,4 +92,18 @@ async function copyToClipboardWithNotice(text) {
             setTimeout(() => notice.remove(), 400);
         }, 1000);
     }
+}
+
+// 特殊文字のみエンコード
+function safeSelectiveEncode(text) {
+    return text
+        .replace(/%/g, '%25')   // 最初に%を置換
+        .replace(/ /g, '%20')   // スペース
+        .replace(/\(/g, '%28')  // 開始カッコ
+        .replace(/\)/g, '%29')  // 終了カッコ
+        .replace(/#/g, '%23')   // シャープ
+        .replace(/,/g, '%2C')   // カンマ
+        .replace(/-/g, '%2D')   // ハイフン
+        .replace(/&/g, '%26')   // アンパサンド
+        .replace(/\n/g, '%20'); // 改行（スペースに置換）
 }
