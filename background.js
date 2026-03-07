@@ -12,10 +12,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
         const selectionText = safeSelectiveEncode(info.selectionText); // 選択されたテキスト
         const pageUrl = info.pageUrl.split('#')[0]; // ページのURL
+        const title = cleanLabel(tab.title);
 
         // 選択箇所を強調表示するためのフラグメントを作成
         const fragment = `#:~:text=${selectionText}`;
-        const markdownLink = `[${tab.title}](${pageUrl}${fragment})`;
+        const markdownLink = `[${title}](${pageUrl}${fragment})`;
 
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
@@ -106,4 +107,13 @@ function safeSelectiveEncode(text) {
         .replace(/-/g, '%2D')   // ハイフン
         .replace(/&/g, '%26')   // アンパサンド
         .replace(/\n/g, '%20'); // 改行（スペースに置換）
+}
+
+// ラベル（表示文字列）を整形
+function cleanLabel(text) {
+    return text
+        .replace(/\r?\n/g, ' ')  // 改行をスペースに（最優先）
+        .replace('[', '［').replace(']', '］')  // 全角に置換、または削除`.replace(/[\[\]]/g, '')`
+        .replace(/\|/g, '｜')    // パイプを全角にしてテーブル崩れを防止
+        .trim();                 // 前後の余計な空白を消す
 }
