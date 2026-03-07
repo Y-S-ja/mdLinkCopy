@@ -50,7 +50,7 @@ function performSelectionCopy(rawSelection, rawUrl, tab) {
     const title = cleanLabel(tab.title);
 
     const fragment = `#:~:text=${selectionText}`;
-    const markdownLink = `[${title}](${pageUrl}${fragment})`;
+    const markdownLink = `[${title}](${getReadableUrl(pageUrl)}${fragment})`;
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -76,7 +76,7 @@ function copyPageLink(tab) {
 
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title);
-    const markdownLink = `[${title}](${pageUrl})`;
+    const markdownLink = `[${title}](${getReadableUrl(pageUrl)})`;
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -187,4 +187,22 @@ function generateTextFragmentParam(text) {
 
     // エンコードしてカンマで繋ぐ
     return `${safeSelectiveEncode(startPart)},${safeSelectiveEncode(endPart)}`;
+}
+
+// tab.url をデコードして扱いやすくする関数
+function getReadableUrl(rawUrl) {
+    try {
+        // 1. まず全体を日本語に戻す
+        let decodedUrl = decodeURI(rawUrl);
+
+        // 2. Markdownの構文 [タイトル](URL) を壊さないための最小限の処理
+        return decodedUrl
+            .replace(/ /g, '%20')
+            .replace(/\(/g, '%28')
+            .replace(/\)/g, '%29');
+    } catch (e) {
+        // 万が一デコードに失敗した（不正なURLなど）場合は、元のURLを返す
+        console.error('URLデコードエラー:', e);
+        return rawUrl;
+    }
 }
