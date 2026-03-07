@@ -157,21 +157,34 @@ function cleanLabel(text) {
  */
 function generateTextFragmentParam(text) {
     const THRESHOLD = 60;   // この文字数を超えたら中略する
-    const EXTRACT_LEN = 20; // 前後から抽出する文字数
+    const BASE_LEN = 20;    // 抽出基準の文字数
 
-    // 前後の空白をトリミング
-    const cleanText = text.trim();
+    // 前後の空白をトリミングし、内部の連続した空白を1つにする（マッチング率向上）
+    const cleanText = text.trim().replace(/\s+/g, ' ');
 
     // 指定文字数より短い場合は、全文をエンコードして返す
     if (cleanText.length <= THRESHOLD) {
         return safeSelectiveEncode(cleanText);
     }
 
-    // 開始と終了のパーツを抽出
-    const startPart = cleanText.substring(0, EXTRACT_LEN);
-    const endPart = cleanText.substring(cleanText.length - EXTRACT_LEN);
+    // --- 開始部分の抽出（単語の途中で切れないように後ろに広げる） ---
+    let startPart = cleanText.substring(0, BASE_LEN);
+    const followingText = cleanText.substring(BASE_LEN);
+    // 次の区切り文字（スペースや記号）までの文字列を抽出
+    const startExtension = followingText.match(/^[^\s,.;:!?]*/);
+    if (startExtension) {
+        startPart += startExtension[0];
+    }
 
-    // 重要：前後のパーツは個別にエンコードし、中間のカンマはそのまま繋げる
-    // これによりブラウザが「開始位置,終了位置」という範囲指定だと認識できる
+    // --- 終了部分の抽出（単語の途中で切れないように前に広げる） ---
+    let endPart = cleanText.substring(cleanText.length - BASE_LEN);
+    const leadingText = cleanText.substring(0, cleanText.length - BASE_LEN);
+    // 前の区切り文字（スペースや記号）までの文字列を逆向きに抽出
+    const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
+    if (endExtension) {
+        endPart = endExtension[0] + endPart;
+    }
+
+    // エンコードしてカンマで繋ぐ
     return `${safeSelectiveEncode(startPart)},${safeSelectiveEncode(endPart)}`;
 }
