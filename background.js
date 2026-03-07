@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
         const selectionText = info.selectionText; // 選択されたテキスト
-        const pageUrl = info.pageUrl; // ページのURL
+        const pageUrl = info.pageUrl.split('#')[0]; // ページのURL
 
         // 選択箇所を強調表示するためのフラグメントを作成
         const fragment = `#:~:text=${encodeURIComponent(selectionText)}`;
