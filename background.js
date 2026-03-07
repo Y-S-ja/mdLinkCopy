@@ -14,6 +14,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 });
 
+// 拡張機能アイコン（action）クリック時の処理
+chrome.action.onClicked.addListener((tab) => {
+    copyPageLink(tab);
+});
+
 // ショートカットキーのリスナー
 chrome.commands.onCommand.addListener(async (command, tab) => {
     switch (command) {
@@ -79,11 +84,6 @@ function copyPageLink(tab) {
         args: [markdownLink]
     }).catch(err => console.error('Script injection failed:', err));
 }
-
-// 拡張機能アイコン（action）クリック時の処理
-chrome.action.onClicked.addListener((tab) => {
-    copyPageLink(tab);
-});
 
 // Webサイト側で実行される共通のコピー＆通知関数
 async function copyToClipboardWithNotice(text) {
