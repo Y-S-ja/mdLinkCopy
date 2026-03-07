@@ -16,20 +16,24 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 // ショートカットキーのリスナー
 chrome.commands.onCommand.addListener(async (command, tab) => {
-    if (command === "copy-page-md") {
-        // ページ全体リンクの処理を呼び出し
-        copyPageLink(tab);
-    } else if (command === "copy-selection-md") {
-        // ページ内から選択テキストを抽出
-        const result = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: () => window.getSelection().toString()
-        });
-        const selection = result[0].result;
-        if (selection) {
-            performSelectionCopy(selection, tab.url, tab);
-        } else {
-            console.warn("No text selected for shortcut.");
+    switch (command) {
+        case "copy-page-md":
+            copyPageLink(tab);
+            break;
+
+        case "copy-selection-md": {
+            // ページ内から選択テキストを抽出
+            const result = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.getSelection().toString()
+            });
+            const selection = result[0].result;
+            if (selection) {
+                performSelectionCopy(selection, tab.url, tab);
+            } else {
+                console.warn("No text selected for shortcut.");
+            }
+            break;
         }
     }
 });
