@@ -10,25 +10,48 @@ chrome.runtime.onInstalled.addListener(() => {
 // コンテキストメニュー（右クリック）クリック時の処理
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
-        const selectionText = generateTextFragmentParam(info.selectionText); // 選択されたテキスト
-        const pageUrl = info.pageUrl.split('#')[0]; // ページのURL
-        const title = cleanLabel(tab.title);
-
-        // 選択箇所を強調表示するためのフラグメントを作成
-        const fragment = `#:~:text=${selectionText}`;
-        const markdownLink = `[${title}](${pageUrl}${fragment})`;
-
-        chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: copyToClipboardWithNotice,
-            args: [markdownLink]
-        }).catch(err => console.error('Script injection failed:', err));
+        performSelectionCopy(info.selectionText, info.pageUrl, tab);
     }
 });
 
-// 拡張機能アイコン（action）クリック時の処理
-chrome.action.onClicked.addListener((tab) => {
-    // スクリプト注入が禁止されているページを除外
+// ショートカットキーのリスナー
+chrome.commands.onCommand.addListener(async (command, tab) => {
+    if (command === "copy-page-md") {
+        // ページ全体リンクの処理を呼び出し
+        copyPageLink(tab);
+    } else if (command === "copy-selection-md") {
+        // ページ内から選択テキストを抽出
+        const result = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => window.getSelection().toString()
+        });
+        const selection = result[0].result;
+        if (selection) {
+            performSelectionCopy(selection, tab.url, tab);
+        } else {
+            console.warn("No text selected for shortcut.");
+        }
+    }
+});
+
+// 選択箇所のコピー共通処理
+function performSelectionCopy(rawSelection, rawUrl, tab) {
+    const selectionText = generateTextFragmentParam(rawSelection);
+    const pageUrl = rawUrl.split('#')[0];
+    const title = cleanLabel(tab.title);
+
+    const fragment = `#:~:text=${selectionText}`;
+    const markdownLink = `[${title}](${pageUrl}${fragment})`;
+
+    chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: copyToClipboardWithNotice,
+        args: [markdownLink]
+    }).catch(err => console.error('Script injection failed:', err));
+}
+
+// ページ全体リンクのコピー共通処理
+function copyPageLink(tab) {
     const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
     if (!tab.url || restrictedPrefixes.some(prefix => tab.url.startsWith(prefix))) {
         // 禁止ページではブラウザのシステム通知を表示
@@ -44,8 +67,6 @@ chrome.action.onClicked.addListener((tab) => {
 
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title);
-
-    // アイコンクリック時はページ全体のリンクを作成
     const markdownLink = `[${title}](${pageUrl})`;
 
     chrome.scripting.executeScript({
@@ -53,6 +74,11 @@ chrome.action.onClicked.addListener((tab) => {
         func: copyToClipboardWithNotice,
         args: [markdownLink]
     }).catch(err => console.error('Script injection failed:', err));
+}
+
+// 拡張機能アイコン（action）クリック時の処理
+chrome.action.onClicked.addListener((tab) => {
+    copyPageLink(tab);
 });
 
 // Webサイト側で実行される共通のコピー＆通知関数

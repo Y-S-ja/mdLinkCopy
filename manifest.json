@@ -27,5 +27,19 @@
             "48": "images/icon192x192.png"
         },
         "default_title": "Quick Md Copy"
+    },
+    "commands": {
+        "copy-page-md": {
+            "suggested_key": {
+                "default": "Ctrl+M"
+            },
+            "description": "ページ全体のMarkdownリンクをコピー"
+        },
+        "copy-selection-md": {
+            "suggested_key": {
+                "default": "Alt+M"
+            },
+            "description": "選択箇所へのMarkdownリンクをコピー"
+        }
     }
 }
