@@ -10,7 +10,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // コンテキストメニュー（右クリック）クリック時の処理
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
-        const selectionText = safeSelectiveEncode(info.selectionText); // 選択されたテキスト
+        const selectionText = generateTextFragmentParam(info.selectionText); // 選択されたテキスト
         const pageUrl = info.pageUrl.split('#')[0]; // ページのURL
         const title = cleanLabel(tab.title);
 
@@ -119,4 +119,29 @@ function cleanLabel(text) {
         .replace('[', '［').replace(']', '］')  // 全角に置換、または削除`.replace(/[\[\]]/g, '')`
         .replace(/\|/g, '｜')    // パイプを全角にしてテーブル崩れを防止
         .trim();                 // 前後の余計な空白を消す
+}
+
+/*
+ * 選択テキストをテキストフラグメント用のパラメータ形式に変換する
+ * 長い場合は "開始20文字,終了20文字" の形式にする
+ */
+function generateTextFragmentParam(text) {
+    const THRESHOLD = 60;   // この文字数を超えたら中略する
+    const EXTRACT_LEN = 20; // 前後から抽出する文字数
+
+    // 前後の空白をトリミング
+    const cleanText = text.trim();
+
+    // 指定文字数より短い場合は、全文をエンコードして返す
+    if (cleanText.length <= THRESHOLD) {
+        return safeSelectiveEncode(cleanText);
+    }
+
+    // 開始と終了のパーツを抽出
+    const startPart = cleanText.substring(0, EXTRACT_LEN);
+    const endPart = cleanText.substring(cleanText.length - EXTRACT_LEN);
+
+    // 重要：前後のパーツは個別にエンコードし、中間のカンマはそのまま繋げる
+    // これによりブラウザが「開始位置,終了位置」という範囲指定だと認識できる
+    return `${safeSelectiveEncode(startPart)},${safeSelectiveEncode(endPart)}`;
 }
