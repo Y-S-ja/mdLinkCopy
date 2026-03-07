@@ -42,8 +42,11 @@ chrome.action.onClicked.addListener((tab) => {
         return;
     }
 
+    const pageUrl = tab.url.split('#')[0];
+    const title = cleanLabel(tab.title);
+
     // アイコンクリック時はページ全体のリンクを作成
-    const markdownLink = `[${tab.title}](${tab.url})`;
+    const markdownLink = `[${title}](${pageUrl})`;
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
