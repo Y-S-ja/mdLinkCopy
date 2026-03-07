@@ -14,11 +14,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 });
 
-// 拡張機能アイコン（action）クリック時の処理
-chrome.action.onClicked.addListener((tab) => {
-    copyPageLink(tab);
-});
-
 // ショートカットキーのリスナー
 chrome.commands.onCommand.addListener(async (command, tab) => {
     switch (command) {
@@ -27,21 +22,64 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
             break;
 
         case "copy-selection-md": {
-            // ページ内から選択テキストを抽出
-            const result = await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => window.getSelection().toString()
-            });
-            const selection = result[0].result;
-            if (selection) {
-                performSelectionCopy(selection, tab.url, tab);
-            } else {
-                console.warn("No text selected for shortcut.");
+            // スクリプト注入が禁止されているページでは選択範囲の取得ができない
+            if (isRestrictedPage(tab.url)) {
+                showRestrictedNotification();
+                return;
+            }
+
+            try {
+                const result = await chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: () => window.getSelection().toString()
+                });
+                const selection = result[0].result;
+                if (selection) {
+                    performSelectionCopy(selection, tab.url, tab);
+                }
+            } catch (err) {
+                console.error('Wait... shortcut capture failed:', err);
             }
             break;
         }
     }
 });
+
+// 禁止ページ判定
+function isRestrictedPage(url) {
+    const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
+    return !url || restrictedPrefixes.some(prefix => url.startsWith(prefix));
+}
+
+// 禁止ページ用の通知を表示
+function showRestrictedNotification(message = 'このページでは一部の機能が制限されます') {
+    chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'images/icon192x192.png',
+        title: 'Quick Md Copy',
+        message: message,
+        silent: true
+    });
+}
+
+// クリップボードコピーの総括処理（ページ内 or オフスクリーン）
+async function dispatchCopy(tabId, url, text) {
+    if (isRestrictedPage(url)) {
+        // 禁止ページならオフスクリーン経由でコピーし、システム通知を出す
+        await copyViaOffscreen(text);
+        showRestrictedNotification('Markdownをコピーしました（※制限ページのためシステム通知）');
+    } else {
+        // 通常ページならページ内にスクリプトを注入して通知を出す
+        chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: copyToClipboardWithNotice,
+            args: [text]
+        }).catch(err => {
+            console.error('Injection failed, falling back to offscreen:', err);
+            copyViaOffscreen(text);
+        });
+    }
+}
 
 // 選択箇所のコピー共通処理
 function performSelectionCopy(rawSelection, rawUrl, tab) {
@@ -52,37 +90,38 @@ function performSelectionCopy(rawSelection, rawUrl, tab) {
     const fragment = `#:~:text=${selectionText}`;
     const markdownLink = `[${title}](${getReadableUrl(pageUrl)}${fragment})`;
 
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: copyToClipboardWithNotice,
-        args: [markdownLink]
-    }).catch(err => console.error('Script injection failed:', err));
+    dispatchCopy(tab.id, tab.url, markdownLink);
 }
 
 // ページ全体リンクのコピー共通処理
 function copyPageLink(tab) {
-    const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
-    if (!tab.url || restrictedPrefixes.some(prefix => tab.url.startsWith(prefix))) {
-        // 禁止ページではブラウザのシステム通知を表示
-        chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'images/icon192x192.png',
-            title: 'Quick Md Copy',
-            message: 'このページではコピーできません',
-            silent: true
-        });
-        return;
-    }
-
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title);
     const markdownLink = `[${title}](${getReadableUrl(pageUrl)})`;
 
-    chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: copyToClipboardWithNotice,
-        args: [markdownLink]
-    }).catch(err => console.error('Script injection failed:', err));
+    dispatchCopy(tab.id, tab.url, markdownLink);
+}
+
+// 拡張機能アイコン（action）クリック時の処理
+chrome.action.onClicked.addListener((tab) => {
+    copyPageLink(tab);
+});
+
+// オフスクリーンドキュメントを使用してコピーする
+async function copyViaOffscreen(text) {
+    // すでに存在するか確認し、なければ作成
+    if (!(await chrome.offscreen.hasDocument?.())) {
+        await chrome.offscreen.createDocument({
+            url: 'offscreen.html',
+            reasons: ['CLIPBOARD'],
+            justification: 'Copying Markdown links to clipboard'
+        });
+    }
+    // メッセージを送ってコピーさせる
+    chrome.runtime.sendMessage({
+        target: 'offscreen-clipboard',
+        data: text
+    });
 }
 
 // Webサイト側で実行される共通のコピー＆通知関数
