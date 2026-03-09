@@ -1,5 +1,5 @@
 // バックグラウンドからの指示を受け取る
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.target === 'offscreen-clipboard') {
         copyToClipboard(message.data).then(success => {
             sendResponse({ success });
