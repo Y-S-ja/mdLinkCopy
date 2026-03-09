@@ -16,15 +16,13 @@ async function copyToClipboard(text) {
     } catch (err) {
         // 2. 失敗した場合は、古い execCommand で再試行
         try {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            
-            textArea.select();
-            const result = document.execCommand('copy');
-            
-            document.body.removeChild(textArea);
-            return result;
+            const textArea = document.getElementById('copy-buffer');
+            if (textArea) {
+                textArea.value = text;
+                textArea.select();
+                return document.execCommand('copy');
+            }
+            return false;
         } catch (fallbackErr) {
             console.error('All offscreen copy methods failed:', fallbackErr);
             return false;
