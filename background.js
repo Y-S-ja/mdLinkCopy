@@ -52,7 +52,7 @@ function isRestrictedPage(url) {
 }
 
 // 禁止ページ用の通知を表示
-function showRestrictedNotification(message = 'このページでは一部の機能が制限されます') {
+function showRestrictedNotification(message = 'このページでは一部の機能が制限されます。\n右クリックメニューを使用してください。') {
     chrome.notifications.create({
         type: 'basic',
         iconUrl: 'images/icon192x192.png',
