@@ -65,18 +65,29 @@ function showRestrictedNotification(message = 'このページでは一部の機
 // クリップボードコピーの総括処理（ページ内 or オフスクリーン）
 async function dispatchCopy(tabId, url, text) {
     if (isRestrictedPage(url)) {
-        // 禁止ページならオフスクリーン経由でコピーし、システム通知を出す
-        await copyViaOffscreen(text);
-        showRestrictedNotification('Markdownをコピーしました（※制限ページのためシステム通知）');
+        // 禁止ページならオフスクリーン経由でコピー
+        const success = await copyViaOffscreen(text);
+        if (success) {
+            console.log(success);
+            showRestrictedNotification('Markdownをコピーしました（※制限ページのためシステム通知）');
+        } else {
+            console.log(success);
+            showRestrictedNotification('コピーに失敗しました（※制限ページのためシステム通知）');
+        }
     } else {
         // 通常ページならページ内にスクリプトを注入して通知を出す
         chrome.scripting.executeScript({
             target: { tabId: tabId },
             func: copyToClipboardWithNotice,
             args: [text]
-        }).catch(err => {
+        }).catch(async (err) => {
             console.error('Injection failed, falling back to offscreen:', err);
-            copyViaOffscreen(text);
+            const success = await copyViaOffscreen(text);
+            if (!success) {
+                showRestrictedNotification('コピーに失敗しました');
+            } else {
+                showRestrictedNotification('Markdownをコピーしました（※システム通知）');
+            }
         });
     }
 }
@@ -109,19 +120,26 @@ chrome.action.onClicked.addListener((tab) => {
 
 // オフスクリーンドキュメントを使用してコピーする
 async function copyViaOffscreen(text) {
-    // すでに存在するか確認し、なければ作成
-    if (!(await chrome.offscreen.hasDocument?.())) {
-        await chrome.offscreen.createDocument({
-            url: 'offscreen.html',
-            reasons: ['CLIPBOARD'],
-            justification: 'Copying Markdown links to clipboard'
+    try {
+        // すでに存在するか確認し、なければ作成
+        if (!(await chrome.offscreen.hasDocument?.())) {
+            await chrome.offscreen.createDocument({
+                url: 'offscreen.html',
+                reasons: ['CLIPBOARD'],
+                justification: 'Copying Markdown links to clipboard'
+            });
+        }
+        // メッセージを送ってコピーさせ、結果を待つ
+        const response = await chrome.runtime.sendMessage({
+            target: 'offscreen-clipboard',
+            data: text
         });
+        console.log(response);
+        return response?.success || false;
+    } catch (err) {
+        console.error('Copy via offscreen failed:', err);
+        return false;
     }
-    // メッセージを送ってコピーさせる
-    chrome.runtime.sendMessage({
-        target: 'offscreen-clipboard',
-        data: text
-    });
 }
 
 // Webサイト側で実行される共通のコピー＆通知関数
