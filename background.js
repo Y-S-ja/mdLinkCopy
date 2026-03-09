@@ -215,34 +215,75 @@ function cleanLabel(text) {
 function generateTextFragmentParam(text) {
     const THRESHOLD = 60;   // この文字数を超えたら中略する
     const BASE_LEN = 20;    // 抽出基準の文字数
+    const MAX_EXPANSION = 10; // 単語境界を探して広げる最大文字数
 
-    // 前後の空白をトリミングし、内部の連続した空白を1つにする（マッチング率向上）
+    // 前後の空白をトリミングし、内部の連続した空白を1つにする
     const cleanText = text.trim().replace(/\s+/g, ' ');
 
-    // 指定文字数より短い場合は、全文をエンコードして返す
     if (cleanText.length <= THRESHOLD) {
         return safeSelectiveEncode(cleanText);
     }
 
-    // --- 開始部分の抽出（単語の途中で切れないように後ろに広げる） ---
-    let startPart = cleanText.substring(0, BASE_LEN);
-    const followingText = cleanText.substring(BASE_LEN);
-    // 次の区切り文字（スペースや記号）までの文字列を抽出
-    const startExtension = followingText.match(/^[^\s,.;:!?]*/);
-    if (startExtension) {
-        startPart += startExtension[0];
+    // 単語境界を判定するセグメンター（ブラウザ標準機能）
+    let segmenter;
+    try {
+        // 実行環境の言語設定に合わせるが、日本語は常に考慮
+        segmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+    } catch (e) {
+        segmenter = null;
     }
 
-    // --- 終了部分の抽出（単語の途中で切れないように前に広げる） ---
-    let endPart = cleanText.substring(cleanText.length - BASE_LEN);
-    const leadingText = cleanText.substring(0, cleanText.length - BASE_LEN);
-    // 前の区切り文字（スペースや記号）までの文字列を逆向きに抽出
-    const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
-    if (endExtension) {
-        endPart = endExtension[0] + endPart;
+    // --- 開始部分を抽出 ---
+    let startPart = "";
+    if (segmenter) {
+        const segments = Array.from(segmenter.segment(cleanText));
+        console.log("segments", segments);
+        let currentLen = 0;
+        for (const segment of segments) {
+            currentLen += segment.segment.length;
+            if (currentLen >= BASE_LEN) {
+                // 基準点を超えた最初の単語の終わりまでを採用
+                // ただし、単語が長すぎる（最大文字数を超える）場合は基準点で切る
+                const extension = currentLen - BASE_LEN;
+                const finalLen = (extension <= MAX_EXPANSION) ? currentLen : BASE_LEN;
+                startPart = cleanText.substring(0, finalLen);
+                break;
+            }
+        }
+    } else {
+        // Fallback: Segmenterが使えない場合は以前の正規表現（英語等用）
+        startPart = cleanText.substring(0, BASE_LEN);
+        const followingText = cleanText.substring(BASE_LEN);
+        const startExtension = followingText.match(/^[^\s,.;:!?]*/);
+        if (startExtension && startExtension[0].length <= MAX_EXPANSION) {
+            startPart += startExtension[0];
+        }
     }
 
-    // エンコードしてカンマで繋ぐ
+    // --- 終了部分を抽出 ---
+    let endPart = "";
+    if (segmenter) {
+        const segments = Array.from(segmenter.segment(cleanText)).reverse();
+        let currentLen = 0;
+        for (const segment of segments) {
+            currentLen += segment.segment.length;
+            if (currentLen >= BASE_LEN) {
+                const extension = currentLen - BASE_LEN;
+                const finalLen = (extension <= MAX_EXPANSION) ? currentLen : BASE_LEN;
+                endPart = cleanText.substring(cleanText.length - finalLen);
+                break;
+            }
+        }
+    } else {
+        // Fallback
+        endPart = cleanText.substring(cleanText.length - BASE_LEN);
+        const leadingText = cleanText.substring(0, cleanText.length - BASE_LEN);
+        const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
+        if (endExtension && endExtension[0].length <= MAX_EXPANSION) {
+            endPart = endExtension[0] + endPart;
+        }
+    }
+
     return `${safeSelectiveEncode(startPart)},${safeSelectiveEncode(endPart)}`;
 }
 
