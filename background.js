@@ -237,25 +237,28 @@ function generateTextFragmentParam(text) {
     let startPart = "";
     if (segmenter) {
         const segments = Array.from(segmenter.segment(cleanText));
-        console.log("segments", segments);
-        let currentLen = 0;
         for (const segment of segments) {
-            currentLen += segment.segment.length;
-            if (currentLen >= BASE_LEN) {
-                // 基準点を超えた最初の単語の終わりまでを採用
-                // ただし、単語が長すぎる（最大文字数を超える）場合は基準点で切る
-                const extension = currentLen - BASE_LEN;
-                const finalLen = (extension <= MAX_EXPANSION) ? currentLen : BASE_LEN;
+            const startIdx = segment.index;
+            const endIdx = startIdx + segment.segment.length;
+            
+            // 基準点（BASE_LEN）が含まれるセグメントを探す
+            if (startIdx <= BASE_LEN && endIdx >= BASE_LEN) {
+                // 基準点に近い方の境界を選択（ただし、開始部分が空にならないよう配慮）
+                const distToStart = BASE_LEN - startIdx;
+                const distToEnd = endIdx - BASE_LEN;
+                
+                // 始点が0（文字列の先頭）の場合は、単語の終わりまで取る
+                const finalLen = (distToStart < distToEnd && startIdx > 0) ? startIdx : endIdx;
                 startPart = cleanText.substring(0, finalLen);
                 break;
             }
         }
     } else {
-        // Fallback: Segmenterが使えない場合は以前の正規表現（英語等用）
+        // Fallback: Segmenterが使えない場合
         startPart = cleanText.substring(0, BASE_LEN);
         const followingText = cleanText.substring(BASE_LEN);
         const startExtension = followingText.match(/^[^\s,.;:!?]*/);
-        if (startExtension && startExtension[0].length <= MAX_EXPANSION) {
+        if (startExtension) {
             startPart += startExtension[0];
         }
     }
@@ -263,14 +266,22 @@ function generateTextFragmentParam(text) {
     // --- 終了部分を抽出 ---
     let endPart = "";
     if (segmenter) {
-        const segments = Array.from(segmenter.segment(cleanText)).reverse();
-        let currentLen = 0;
+        const segments = Array.from(segmenter.segment(cleanText));
+        const targetIdx = cleanText.length - BASE_LEN;
+        
         for (const segment of segments) {
-            currentLen += segment.segment.length;
-            if (currentLen >= BASE_LEN) {
-                const extension = currentLen - BASE_LEN;
-                const finalLen = (extension <= MAX_EXPANSION) ? currentLen : BASE_LEN;
-                endPart = cleanText.substring(cleanText.length - finalLen);
+            const startIdx = segment.index;
+            const endIdx = startIdx + segment.segment.length;
+            
+            // 基準点（後ろから20文字の位置）が含まれるセグメントを探す
+            if (startIdx <= targetIdx && endIdx >= targetIdx) {
+                // 基準点に近い方の境界を選択
+                const distToStart = targetIdx - startIdx;
+                const distToEnd = endIdx - targetIdx;
+                
+                // 終点が文字列の最後の場合は、単語の始まりまで取る
+                const finalStartIdx = (distToEnd < distToStart && endIdx < cleanText.length) ? endIdx : startIdx;
+                endPart = cleanText.substring(finalStartIdx);
                 break;
             }
         }
@@ -279,7 +290,7 @@ function generateTextFragmentParam(text) {
         endPart = cleanText.substring(cleanText.length - BASE_LEN);
         const leadingText = cleanText.substring(0, cleanText.length - BASE_LEN);
         const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
-        if (endExtension && endExtension[0].length <= MAX_EXPANSION) {
+        if (endExtension) {
             endPart = endExtension[0] + endPart;
         }
     }
