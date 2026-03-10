@@ -8,9 +8,23 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // コンテキストメニュー（右クリック）クリック時の処理
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
-        performSelectionCopy(info.selectionText, info.pageUrl, tab);
+        let expandedText = info.selectionText;
+        try {
+            // 右クリックで渡される info.selectionText は既に切り取られた後のため、
+            // ページ内で再度「広げた選択範囲」を取得し直す
+            const result = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: getExpandedSelectionTextInPage
+            });
+            if (result[0].result) {
+                expandedText = result[0].result;
+            }
+        } catch (err) {
+            console.warn('Failed to expand selection on page, using raw selection:', err);
+        }
+        performSelectionCopy(expandedText, info.pageUrl, tab);
     }
 });
 
@@ -22,7 +36,6 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
             break;
 
         case "copy-selection-md": {
-            // スクリプト注入が禁止されているページでは選択範囲の取得ができない
             if (isRestrictedPage(tab.url)) {
                 showRestrictedNotification();
                 return;
@@ -31,19 +44,61 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
             try {
                 const result = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
-                    func: () => window.getSelection().toString()
+                    func: getExpandedSelectionTextInPage
                 });
                 const selection = result[0].result;
                 if (selection) {
                     performSelectionCopy(selection, tab.url, tab);
                 }
             } catch (err) {
-                console.error('Wait... shortcut capture failed:', err);
+                console.error('Shortcut capture failed:', err);
             }
             break;
         }
     }
 });
+
+// ページ内で実行される「選択範囲を単語境界まで広げる」関数
+function getExpandedSelectionTextInPage() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+
+    const range = selection.getRangeAt(0);
+    if (range.collapsed) return null;
+
+    const originalRange = range.cloneRange();
+
+    try {
+        // 始点を単語の先頭へ
+        selection.collapseToStart();
+        selection.modify('move', 'backward', 'word');
+        const startContainer = selection.anchorNode;
+        const startOffset = selection.anchorOffset;
+
+        // 終点を単語の末尾へ
+        selection.removeAllRanges();
+        selection.addRange(originalRange);
+        selection.collapseToEnd();
+        selection.modify('move', 'forward', 'word');
+        const endContainer = selection.focusNode;
+        const endOffset = selection.focusOffset;
+
+        const expandedRange = document.createRange();
+        expandedRange.setStart(startContainer, startOffset);
+        expandedRange.setEnd(endContainer, endOffset);
+        const text = expandedRange.toString();
+
+        // 復元
+        selection.removeAllRanges();
+        selection.addRange(originalRange);
+
+        return text;
+    } catch (e) {
+        selection.removeAllRanges();
+        selection.addRange(originalRange);
+        return originalRange.toString();
+    }
+}
 
 // 禁止ページ判定
 function isRestrictedPage(url) {
@@ -240,13 +295,13 @@ function generateTextFragmentParam(text) {
         for (const segment of segments) {
             const startIdx = segment.index;
             const endIdx = startIdx + segment.segment.length;
-            
+
             // 基準点（BASE_LEN）が含まれるセグメントを探す
             if (startIdx <= BASE_LEN && endIdx >= BASE_LEN) {
                 // 基準点に近い方の境界を選択（ただし、開始部分が空にならないよう配慮）
                 const distToStart = BASE_LEN - startIdx;
                 const distToEnd = endIdx - BASE_LEN;
-                
+
                 // 始点が0（文字列の先頭）の場合は、単語の終わりまで取る
                 const finalLen = (distToStart < distToEnd && startIdx > 0) ? startIdx : endIdx;
                 startPart = cleanText.substring(0, finalLen);
@@ -268,17 +323,17 @@ function generateTextFragmentParam(text) {
     if (segmenter) {
         const segments = Array.from(segmenter.segment(cleanText));
         const targetIdx = cleanText.length - BASE_LEN;
-        
+
         for (const segment of segments) {
             const startIdx = segment.index;
             const endIdx = startIdx + segment.segment.length;
-            
+
             // 基準点（後ろから20文字の位置）が含まれるセグメントを探す
             if (startIdx <= targetIdx && endIdx >= targetIdx) {
                 // 基準点に近い方の境界を選択
                 const distToStart = targetIdx - startIdx;
                 const distToEnd = endIdx - targetIdx;
-                
+
                 // 終点が文字列の最後の場合は、単語の始まりまで取る
                 const finalStartIdx = (distToEnd < distToStart && endIdx < cleanText.length) ? endIdx : startIdx;
                 endPart = cleanText.substring(finalStartIdx);
