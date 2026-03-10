@@ -42,12 +42,14 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
             }
 
             try {
+                console.log("shortcut capture");
                 const result = await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: getExpandedSelectionTextInPage
                 });
                 const selection = result[0].result;
                 if (selection) {
+                    console.log("shortcut capture success: ", selection);
                     performSelectionCopy(selection, tab.url, tab);
                 }
             } catch (err) {
@@ -69,31 +71,39 @@ function getExpandedSelectionTextInPage() {
     const originalRange = range.cloneRange();
 
     try {
-        // 始点を単語の先頭へ
+        // --- 始点の調整 ---
+        // 既に単語の先頭にいる場合に前の単語へ戻ってしまうのを防ぐため、
+        // 1文字右に移動してから、改めて単語の先頭を探す
         selection.collapseToStart();
+        selection.modify('move', 'forward', 'character');
         selection.modify('move', 'backward', 'word');
         const startContainer = selection.anchorNode;
         const startOffset = selection.anchorOffset;
 
-        // 終点を単語の末尾へ
+        // --- 終点の調整 ---
+        // 既に単語の末尾にいる場合に次の単語へ進んでしまうのを防ぐため、
+        // 一旦元の範囲に戻してから、1文字左に移動し、改めて単語の末尾を探す
         selection.removeAllRanges();
         selection.addRange(originalRange);
         selection.collapseToEnd();
+        selection.modify('move', 'backward', 'character');
         selection.modify('move', 'forward', 'word');
         const endContainer = selection.focusNode;
         const endOffset = selection.focusOffset;
 
+        // 新しい範囲を作成してテキスト取得
         const expandedRange = document.createRange();
         expandedRange.setStart(startContainer, startOffset);
         expandedRange.setEnd(endContainer, endOffset);
         const text = expandedRange.toString();
 
-        // 復元
+        // ユーザーの選択範囲を元に戻す
         selection.removeAllRanges();
         selection.addRange(originalRange);
 
         return text;
     } catch (e) {
+        console.error('Failed to expand selection:', e);
         selection.removeAllRanges();
         selection.addRange(originalRange);
         return originalRange.toString();
