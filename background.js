@@ -1,3 +1,8 @@
+// 初期設定の定義（将来的に項目を増やす場合はここに追加するだけ）
+const INITIAL_SETTINGS = {
+    'notice-duration': 1000
+};
+
 // インストール時にコンテキストメニュー作成と初期設定の保存
 chrome.runtime.onInstalled.addListener(async () => {
     // コンテキストメニュー作成
@@ -7,10 +12,20 @@ chrome.runtime.onInstalled.addListener(async () => {
         contexts: ["selection"] // テキストを選択している時だけ表示
     });
 
-    // 初期設定がない場合に保存
-    const items = await chrome.storage.sync.get('notice-duration');
-    if (items['notice-duration'] === undefined) {
-        chrome.storage.sync.set({ 'notice-duration': 1000 });
+    // まだ保存されていない設定項目のみを抽出して初期化
+    const currentSettings = await chrome.storage.sync.get(Object.keys(INITIAL_SETTINGS));
+    const newSettings = {};
+    let needsUpdate = false;
+
+    for (const [key, defaultValue] of Object.entries(INITIAL_SETTINGS)) {
+        if (currentSettings[key] === undefined) {
+            newSettings[key] = defaultValue;
+            needsUpdate = true;
+        }
+    }
+
+    if (needsUpdate) {
+        chrome.storage.sync.set(newSettings);
     }
 });
 
