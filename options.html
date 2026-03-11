@@ -20,6 +20,36 @@
 
         <main>
             <section class="card">
+                <h2>📝 ラベルの整形</h2>
+                <div class="setting-item">
+                    <div class="info">
+                        <label>カッコ [ ] を全角に変換する</label>
+                        <p class="desc">OFFにすると、リンク内の [ ] が削除されます</p>
+                    </div>
+                    <div class="input-wrapper">
+                        <span id="status-bracket-to-zenkaku" class="status-message">保存しました</span>
+                        <label class="switch">
+                            <input type="checkbox" id="bracket-to-zenkaku">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="info">
+                        <label>パイプ | を全角に変換する</label>
+                        <p class="desc">OFFにすると、そのまま半角で出力されます（テーブル崩れに注意）</p>
+                    </div>
+                    <div class="input-wrapper">
+                        <span id="status-pipe-to-zenkaku" class="status-message">保存しました</span>
+                        <label class="switch">
+                            <input type="checkbox" id="pipe-to-zenkaku">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
                 <h2>🔗 URLの形式</h2>
                 <div class="setting-item">
                     <div class="info">

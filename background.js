@@ -5,7 +5,9 @@ const INITIAL_SETTINGS = {
     'base-len': 20,
     'use-readable-url': true,
     'use-start-end-format': true,
-    'use-readable-fragment': true
+    'use-readable-fragment': true,
+    'bracket-to-zenkaku': true,
+    'pipe-to-zenkaku': true
 };
 
 // インストール時にコンテキストメニュー作成と初期設定の保存
@@ -188,16 +190,19 @@ async function dispatchCopy(tabId, url, text) {
 
 // 選択箇所のコピー共通処理
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
-    const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url', 'use-start-end-format', 'use-readable-fragment']);
-    const threshold = items['threshold'] || 60;
-    const baseLen = items['base-len'] || 20;
-    const useReadableUrl = items['use-readable-url'];
-    const useStartEnd = items['use-start-end-format'];
-    const useReadableFragment = items['use-readable-fragment'];
+    const settings = await chrome.storage.sync.get([
+        'threshold', 'base-len', 'use-readable-url', 'use-start-end-format',
+        'use-readable-fragment', 'bracket-to-zenkaku', 'pipe-to-zenkaku'
+    ]);
+    const threshold = settings['threshold'] || 60;
+    const baseLen = settings['base-len'] || 20;
+    const useReadableUrl = settings['use-readable-url'];
+    const useStartEnd = settings['use-start-end-format'];
+    const useReadableFragment = settings['use-readable-fragment'];
 
     const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen, useStartEnd, useReadableFragment);
     const pageUrl = rawUrl.split('#')[0];
-    const title = cleanLabel(tab.title);
+    const title = cleanLabel(tab.title, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
 
     const fragment = `#:~:text=${selectionText}`;
     const finalUrl = useReadableUrl ? getReadableUrl(pageUrl) : pageUrl;
@@ -208,11 +213,11 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
 
 // ページ全体リンクのコピー共通処理
 async function copyPageLink(tab) {
-    const items = await chrome.storage.sync.get('use-readable-url');
-    const useReadableUrl = items['use-readable-url'];
+    const settings = await chrome.storage.sync.get(['use-readable-url', 'bracket-to-zenkaku', 'pipe-to-zenkaku']);
+    const useReadableUrl = settings['use-readable-url'];
 
     const pageUrl = tab.url.split('#')[0];
-    const title = cleanLabel(tab.title);
+    const title = cleanLabel(tab.title, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
     const finalUrl = useReadableUrl ? getReadableUrl(pageUrl) : pageUrl;
     const markdownLink = `[${title}](${finalUrl})`;
 
@@ -304,13 +309,29 @@ function safeSelectiveEncode(text) {
         .replace(/\n/g, '%20'); // 改行（スペースに置換）
 }
 
-// ラベル（表示文字列）を整形
-function cleanLabel(text) {
-    return text
-        .replace(/\r?\n/g, ' ')  // 改行をスペースに（最優先）
-        .replace('[', '［').replace(']', '］')  // 全角に置換、または削除`.replace(/[\[\]]/g, '')`
-        .replace(/\|/g, '｜')    // パイプを全角にしてテーブル崩れを防止
-        .trim();                 // 前後の余計な空白を消す
+/*
+ * Markdownのラベルとして不適切な文字をクリーンアップする
+ * [] はMarkdownの文法と重複するため置換または削除
+ * | はテーブル文法を破壊するため置換
+ */
+function cleanLabel(text, bracketToZenkaku, pipeToZenkaku) {
+    if (!text) return "";
+
+    let cleaned = text.replace(/\r?\n/g, ' '); // 改行をスペースに（最優先）
+
+    // [] の処理
+    if (bracketToZenkaku) {
+        cleaned = cleaned.replace(/\[/g, '［').replace(/\]/g, '］');
+    } else {
+        cleaned = cleaned.replace(/[\[\]]/g, '');
+    }
+
+    // | の処理
+    if (pipeToZenkaku) {
+        cleaned = cleaned.replace(/\|/g, '｜');
+    }
+
+    return cleaned.trim(); // 前後の余計な空白を消す
 }
 
 /*
