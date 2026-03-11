@@ -133,10 +133,8 @@ async function dispatchCopy(tabId, url, text) {
         // 禁止ページならオフスクリーン経由でコピー
         const success = await copyViaOffscreen(text);
         if (success) {
-            console.log(success);
             showRestrictedNotification('Markdownをコピーしました（※制限ページのためシステム通知）');
         } else {
-            console.log(success);
             showRestrictedNotification('コピーに失敗しました（※制限ページのためシステム通知）');
         }
     } else {
@@ -199,7 +197,6 @@ async function copyViaOffscreen(text) {
             target: 'offscreen-clipboard',
             data: text
         });
-        console.log(response);
         return response?.success || false;
     } catch (err) {
         console.error('Copy via offscreen failed:', err);
@@ -280,7 +277,6 @@ function cleanLabel(text) {
 function generateTextFragmentParam(text) {
     const THRESHOLD = 60;   // この文字数を超えたら中略する
     const BASE_LEN = 20;    // 抽出基準の文字数
-    const MAX_EXPANSION = 10; // 単語境界を探して広げる最大文字数
 
     // 前後の空白をトリミングし、内部の連続した空白を1つにする
     const cleanText = text.trim().replace(/\s+/g, ' ');
