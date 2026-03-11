@@ -97,7 +97,21 @@ header {
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+    padding: 8px 0;
 }
+
+.setting-item:first-of-type {
+    padding-top: 8px;
+}
+
+.setting-item:last-of-type {
+    padding-bottom: 8px;
+}
+
+.setting-item+.setting-item {
+    border-top: 1px solid #f1f5f9;
+}
+
 
 .info {
     flex: 1;
