@@ -30,5 +30,5 @@ function saveOptions() {
 // 初期ロード時に復元
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
-// 入力があるたびにオートセーブ
-document.getElementById('notice-duration').addEventListener('input', saveOptions);
+// 値が確定したタイミング（フォーカスが外れた、Enterなど）で保存
+document.getElementById('notice-duration').addEventListener('change', saveOptions);
