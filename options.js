@@ -1,4 +1,4 @@
-const settingIds = ['notice-duration', 'threshold', 'base-len', 'use-readable-url'];
+const settingIds = ['notice-duration', 'threshold', 'base-len', 'use-readable-url', 'use-start-end-format'];
 
 // 設定を読み込む
 function restoreOptions() {

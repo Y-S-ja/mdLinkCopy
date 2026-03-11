@@ -3,7 +3,8 @@ const INITIAL_SETTINGS = {
     'notice-duration': 1000,
     'threshold': 60,
     'base-len': 20,
-    'use-readable-url': true
+    'use-readable-url': true,
+    'use-start-end-format': true
 };
 
 // インストール時にコンテキストメニュー作成と初期設定の保存
@@ -186,12 +187,13 @@ async function dispatchCopy(tabId, url, text) {
 
 // 選択箇所のコピー共通処理
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
-    const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url']);
+    const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url', 'use-start-end-format']);
     const threshold = items['threshold'] || 60;
     const baseLen = items['base-len'] || 20;
     const useReadableUrl = items['use-readable-url'] !== false;
+    const useStartEnd = items['use-start-end-format'] !== false;
 
-    const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen);
+    const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen, useStartEnd);
     const pageUrl = rawUrl.split('#')[0];
     const title = cleanLabel(tab.title);
 
@@ -311,13 +313,13 @@ function cleanLabel(text) {
 
 /*
  * 選択テキストをテキストフラグメント用のパラメータ形式に変換する
- * 長い場合は "開始n文字,終了n文字" の形式にする
  */
-function generateTextFragmentParam(text, threshold, baseLen) {
+function generateTextFragmentParam(text, threshold, baseLen, useStartEnd) {
     // 前後の空白をトリミングし、内部の連続した空白を1つにする
     const cleanText = text.trim().replace(/\s+/g, ' ');
 
-    if (cleanText.length <= threshold) {
+    // 文字数がしきい値以下、または中略（開始,終了形式）を使わない設定の場合
+    if (cleanText.length <= threshold || !useStartEnd) {
         return safeSelectiveEncode(cleanText);
     }
 
