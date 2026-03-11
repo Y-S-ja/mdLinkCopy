@@ -4,7 +4,8 @@ const INITIAL_SETTINGS = {
     'threshold': 60,
     'base-len': 20,
     'use-readable-url': true,
-    'use-start-end-format': true
+    'use-start-end-format': true,
+    'use-readable-fragment': true
 };
 
 // インストール時にコンテキストメニュー作成と初期設定の保存
@@ -187,13 +188,14 @@ async function dispatchCopy(tabId, url, text) {
 
 // 選択箇所のコピー共通処理
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
-    const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url', 'use-start-end-format']);
+    const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url', 'use-start-end-format', 'use-readable-fragment']);
     const threshold = items['threshold'] || 60;
     const baseLen = items['base-len'] || 20;
     const useReadableUrl = items['use-readable-url'];
     const useStartEnd = items['use-start-end-format'];
+    const useReadableFragment = items['use-readable-fragment'];
 
-    const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen, useStartEnd);
+    const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen, useStartEnd, useReadableFragment);
     const pageUrl = rawUrl.split('#')[0];
     const title = cleanLabel(tab.title);
 
@@ -314,13 +316,16 @@ function cleanLabel(text) {
 /*
  * 選択テキストをテキストフラグメント用のパラメータ形式に変換する
  */
-function generateTextFragmentParam(text, threshold, baseLen, useStartEnd) {
+function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useReadableFragment) {
     // 前後の空白をトリミングし、内部の連続した空白を1つにする
     const cleanText = text.trim().replace(/\s+/g, ' ');
 
+    // エンコード関数の選択
+    const encoder = useReadableFragment ? safeSelectiveEncode : encodeURIComponent;
+
     // 文字数がしきい値以下、または中略（開始,終了形式）を使わない設定の場合
     if (cleanText.length <= threshold || !useStartEnd) {
-        return safeSelectiveEncode(cleanText);
+        return encoder(cleanText);
     }
 
     // 単語境界を判定するセグメンター（ブラウザ標準機能）
@@ -394,7 +399,7 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd) {
         }
     }
 
-    return `${safeSelectiveEncode(startPart)},${safeSelectiveEncode(endPart)}`;
+    return `${encoder(startPart)},${encoder(endPart)}`;
 }
 
 // tab.url をデコードして扱いやすくする関数
