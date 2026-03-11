@@ -128,16 +128,17 @@ header {
     color: var(--text-light);
 }
 
-input[type="text"],
 input[type="number"] {
-    flex: 1;
-    min-width: 0;
-    padding: 10px 14px;
+    field-sizing: content;
+    min-width: 60px;
+    max-width: 120px;
+    padding: 10px 12px;
+    padding-left: 28px;
     border-radius: 8px;
     border: 1px solid var(--border);
     font-size: 0.9rem;
     transition: border-color 0.2s, box-shadow 0.2s;
-    text-align: right; /* 右寄せ */
+    text-align: right;
 }
 
 input:focus {
@@ -209,7 +210,9 @@ input:checked+.slider::before {
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
-    width: 120px; /* コンパクトに */
+    width: fit-content;
+    min-width: 100px;
+    /* 保存メッセージの表示領域を確保 */
 }
 
 .status-message {
