@@ -190,8 +190,8 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
     const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url', 'use-start-end-format']);
     const threshold = items['threshold'] || 60;
     const baseLen = items['base-len'] || 20;
-    const useReadableUrl = items['use-readable-url'] !== false;
-    const useStartEnd = items['use-start-end-format'] !== false;
+    const useReadableUrl = items['use-readable-url'];
+    const useStartEnd = items['use-start-end-format'];
 
     const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen, useStartEnd);
     const pageUrl = rawUrl.split('#')[0];
@@ -207,7 +207,7 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
 // ページ全体リンクのコピー共通処理
 async function copyPageLink(tab) {
     const items = await chrome.storage.sync.get('use-readable-url');
-    const useReadableUrl = items['use-readable-url'] !== false;
+    const useReadableUrl = items['use-readable-url'];
 
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title);
