@@ -1,10 +1,17 @@
-// インストール時にコンテキストメニューを作成
-chrome.runtime.onInstalled.addListener(() => {
+// インストール時にコンテキストメニュー作成と初期設定の保存
+chrome.runtime.onInstalled.addListener(async () => {
+    // コンテキストメニュー作成
     chrome.contextMenus.create({
         id: "copy-selection-markdown",
         title: "選択箇所へのMarkdownリンクをコピー",
         contexts: ["selection"] // テキストを選択している時だけ表示
     });
+
+    // 初期設定がない場合に保存
+    const items = await chrome.storage.sync.get('notice-duration');
+    if (items['notice-duration'] === undefined) {
+        chrome.storage.sync.set({ 'notice-duration': 1000 });
+    }
 });
 
 // コンテキストメニュー（右クリック）クリック時の処理
@@ -129,6 +136,10 @@ function showRestrictedNotification(message = 'このページでは一部の機
 
 // クリップボードコピーの総括処理（ページ内 or オフスクリーン）
 async function dispatchCopy(tabId, url, text) {
+    // ストレージから最新の通知時間を取得（初期設定を前提とする）
+    const items = await chrome.storage.sync.get('notice-duration');
+    const duration = items['notice-duration'] || 1000;
+
     if (isRestrictedPage(url)) {
         // 禁止ページならオフスクリーン経由でコピー
         const success = await copyViaOffscreen(text);
@@ -142,7 +153,7 @@ async function dispatchCopy(tabId, url, text) {
         chrome.scripting.executeScript({
             target: { tabId: tabId },
             func: copyToClipboardWithNotice,
-            args: [text]
+            args: [text, duration]
         }).catch(async (err) => {
             console.error('Injection failed, falling back to offscreen:', err);
             const success = await copyViaOffscreen(text);
@@ -156,7 +167,7 @@ async function dispatchCopy(tabId, url, text) {
 }
 
 // 選択箇所のコピー共通処理
-function performSelectionCopy(rawSelection, rawUrl, tab) {
+async function performSelectionCopy(rawSelection, rawUrl, tab) {
     const selectionText = generateTextFragmentParam(rawSelection);
     const pageUrl = rawUrl.split('#')[0];
     const title = cleanLabel(tab.title);
@@ -168,7 +179,7 @@ function performSelectionCopy(rawSelection, rawUrl, tab) {
 }
 
 // ページ全体リンクのコピー共通処理
-function copyPageLink(tab) {
+async function copyPageLink(tab) {
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title);
     const markdownLink = `[${title}](${getReadableUrl(pageUrl)})`;
@@ -205,17 +216,17 @@ async function copyViaOffscreen(text) {
 }
 
 // Webサイト側で実行される共通のコピー＆通知関数
-async function copyToClipboardWithNotice(text) {
+async function copyToClipboardWithNotice(text, duration) {
     try {
         await navigator.clipboard.writeText(text);
-        showNotice("Markdown Copied!", "#2ecc71");
+        showNotice("Markdown Copied!", "#2ecc71", duration);
     } catch (err) {
         console.error('Failed to copy: ', err);
-        showNotice("Copy Failed", "#e74c3c");
+        showNotice("Copy Failed", "#e74c3c", duration);
     }
 
     // 通知用メッセージを表示する補助関数
-    function showNotice(message, bgColor) {
+    function showNotice(message, bgColor, displayMs) {
         const notice = document.createElement("div");
         notice.textContent = message;
         Object.assign(notice.style, {
@@ -243,7 +254,7 @@ async function copyToClipboardWithNotice(text) {
             notice.style.opacity = "0";
             notice.style.transform = "translateX(-50%) translateY(-10px)";
             setTimeout(() => notice.remove(), 400);
-        }, 1000);
+        }, displayMs);
     }
 }
 
