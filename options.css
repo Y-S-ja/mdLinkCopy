@@ -137,6 +137,7 @@ input[type="number"] {
     border: 1px solid var(--border);
     font-size: 0.9rem;
     transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: right; /* 右寄せ */
 }
 
 input:focus {
@@ -201,7 +202,6 @@ input:checked+.slider::before {
     font-size: 0.9rem;
     color: var(--text-light);
     font-weight: 500;
-    min-width: 40px; /* 単位の長さでガタつかないように固定幅 */
 }
 
 .input-wrapper {
@@ -209,7 +209,7 @@ input:checked+.slider::before {
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
-    width: 200px; /* 調整 */
+    width: 120px; /* コンパクトに */
 }
 
 .status-message {
