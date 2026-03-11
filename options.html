@@ -20,6 +20,34 @@
 
         <main>
             <section class="card">
+                <h2>✨ ハイライト (THRESHOLD)</h2>
+                <div class="setting-item">
+                    <div class="info">
+                        <label for="threshold">省略のしきい値 (文字数)</label>
+                        <p class="desc">この文字数を超えると前後のみを抽出します</p>
+                    </div>
+                    <div class="input-wrapper">
+                        <span id="status-threshold" class="status-message">保存しました</span>
+                        <input type="number" id="threshold" min="30" max="200" step="5">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>📏 抽出サイズ (BASE_LEN)</h2>
+                <div class="setting-item">
+                    <div class="info">
+                        <label for="base-len">抽出する長さ (文字数)</label>
+                        <p class="desc">最初と最後から何文字ずつ抽出するか指定します</p>
+                    </div>
+                    <div class="input-wrapper">
+                        <span id="status-base-len" class="status-message">保存しました</span>
+                        <input type="number" id="base-len" min="10" max="50" step="1">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
                 <h2>🔔 通知設定</h2>
                 <div class="setting-item">
                     <div class="info">

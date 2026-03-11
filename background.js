@@ -1,6 +1,8 @@
 // 初期設定の定義（将来的に項目を増やす場合はここに追加するだけ）
 const INITIAL_SETTINGS = {
-    'notice-duration': 1000
+    'notice-duration': 1000,
+    'threshold': 60,
+    'base-len': 20
 };
 
 // インストール時にコンテキストメニュー作成と初期設定の保存
@@ -183,7 +185,11 @@ async function dispatchCopy(tabId, url, text) {
 
 // 選択箇所のコピー共通処理
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
-    const selectionText = generateTextFragmentParam(rawSelection);
+    const items = await chrome.storage.sync.get(['threshold', 'base-len']);
+    const threshold = items['threshold'] || 60;
+    const baseLen = items['base-len'] || 20;
+
+    const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen);
     const pageUrl = rawUrl.split('#')[0];
     const title = cleanLabel(tab.title);
 
@@ -298,16 +304,13 @@ function cleanLabel(text) {
 
 /*
  * 選択テキストをテキストフラグメント用のパラメータ形式に変換する
- * 長い場合は "開始20文字,終了20文字" の形式にする
+ * 長い場合は "開始n文字,終了n文字" の形式にする
  */
-function generateTextFragmentParam(text) {
-    const THRESHOLD = 60;   // この文字数を超えたら中略する
-    const BASE_LEN = 20;    // 抽出基準の文字数
-
+function generateTextFragmentParam(text, threshold, baseLen) {
     // 前後の空白をトリミングし、内部の連続した空白を1つにする
     const cleanText = text.trim().replace(/\s+/g, ' ');
 
-    if (cleanText.length <= THRESHOLD) {
+    if (cleanText.length <= threshold) {
         return safeSelectiveEncode(cleanText);
     }
 
@@ -328,11 +331,11 @@ function generateTextFragmentParam(text) {
             const startIdx = segment.index;
             const endIdx = startIdx + segment.segment.length;
 
-            // 基準点（BASE_LEN）が含まれるセグメントを探す
-            if (startIdx <= BASE_LEN && endIdx >= BASE_LEN) {
+            // 基準点（baseLen）が含まれるセグメントを探す
+            if (startIdx <= baseLen && endIdx >= baseLen) {
                 // 基準点に近い方の境界を選択（ただし、開始部分が空にならないよう配慮）
-                const distToStart = BASE_LEN - startIdx;
-                const distToEnd = endIdx - BASE_LEN;
+                const distToStart = baseLen - startIdx;
+                const distToEnd = endIdx - baseLen;
 
                 // 始点が0（文字列の先頭）の場合は、単語の終わりまで取る
                 const finalLen = (distToStart < distToEnd && startIdx > 0) ? startIdx : endIdx;
@@ -342,8 +345,8 @@ function generateTextFragmentParam(text) {
         }
     } else {
         // Fallback: Segmenterが使えない場合
-        startPart = cleanText.substring(0, BASE_LEN);
-        const followingText = cleanText.substring(BASE_LEN);
+        startPart = cleanText.substring(0, baseLen);
+        const followingText = cleanText.substring(baseLen);
         const startExtension = followingText.match(/^[^\s,.;:!?]*/);
         if (startExtension) {
             startPart += startExtension[0];
@@ -354,13 +357,13 @@ function generateTextFragmentParam(text) {
     let endPart = "";
     if (segmenter) {
         const segments = Array.from(segmenter.segment(cleanText));
-        const targetIdx = cleanText.length - BASE_LEN;
+        const targetIdx = cleanText.length - baseLen;
 
         for (const segment of segments) {
             const startIdx = segment.index;
             const endIdx = startIdx + segment.segment.length;
 
-            // 基準点（後ろから20文字の位置）が含まれるセグメントを探す
+            // 基準点（後ろからbaseLen文字の位置）が含まれるセグメントを探す
             if (startIdx <= targetIdx && endIdx >= targetIdx) {
                 // 基準点に近い方の境界を選択
                 const distToStart = targetIdx - startIdx;
@@ -374,8 +377,8 @@ function generateTextFragmentParam(text) {
         }
     } else {
         // Fallback
-        endPart = cleanText.substring(cleanText.length - BASE_LEN);
-        const leadingText = cleanText.substring(0, cleanText.length - BASE_LEN);
+        endPart = cleanText.substring(cleanText.length - baseLen);
+        const leadingText = cleanText.substring(0, cleanText.length - baseLen);
         const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
         if (endExtension) {
             endPart = endExtension[0] + endPart;
