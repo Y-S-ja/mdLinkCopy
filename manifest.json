@@ -9,8 +9,13 @@
         "notifications",
         "contextMenus",
         "offscreen",
-        "clipboardWrite"
+        "clipboardWrite",
+        "storage"
     ],
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": true
+    },
     "icons": {
         "16": "images/icon16x16.png",
         "32": "images/icon32x32.png",

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Md Copy - 設定</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="images/icon128x128.png" alt="Logo">
+                <h1>Quick Md Copy <span>Settings</span></h1>
+            </div>
+            <p class="subtitle">拡張機能の動作をカスタマイズします</p>
+        </header>
+
+        <main>
+            <section class="card">
+                <h2>✨ ハイライト機能 (Text Fragment)</h2>
+                <div class="setting-item">
+                    <div class="info">
+                        <label class="switch-label">
+                            <span>テキストフラグメントを有効にする</span>
+                            <input type="checkbox" id="use-fragment">
+                            <span class="slider"></span>
+                        </label>
+                        <p class="desc">リンクを開いた時に選択箇所を強調表示するパラメータを付与します</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>🔔 通知設定</h2>
+                <div class="setting-item">
+                    <div class="info">
+                        <label for="notice-duration">通知の表示時間 (ミリ秒)</label>
+                        <p class="desc">「Copied!」などの通知が消えるまでの時間です</p>
+                    </div>
+                    <input type="number" id="notice-duration" min="500" max="5000" step="100">
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div id="status" class="status-message">設定を保存しました</div>
+            <button id="save" class="btn-primary">変更を保存</button>
+        </footer>
+    </div>
+    <script src="options.js"></script>
+</body>
+
+</html>
