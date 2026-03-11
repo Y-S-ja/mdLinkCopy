@@ -26,14 +26,13 @@
                         <label for="notice-duration">通知の表示時間 (ミリ秒)</label>
                         <p class="desc">「Copied!」などの通知が消えるまでの時間です</p>
                     </div>
-                    <input type="number" id="notice-duration" min="500" max="5000" step="100">
+                    <div class="input-wrapper">
+                        <span id="status-notice-duration" class="status-message">保存しました</span>
+                        <input type="number" id="notice-duration" min="500" max="5000" step="100">
+                    </div>
                 </div>
             </section>
         </main>
-
-        <footer>
-            <div id="status" class="status-message">保存しました</div>
-        </footer>
     </div>
     <script src="options.js"></script>
 </body>

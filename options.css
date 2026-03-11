@@ -173,41 +173,23 @@ input:checked+.slider::before {
     transform: translateX(20px);
 }
 
-footer {
+.input-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 16px;
-    margin-top: 32px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    width: 240px;
 }
 
 .status-message {
     color: var(--success);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 600;
     opacity: 0;
     transition: opacity 0.3s;
+    height: 1.2em;
 }
 
 .status-message.show {
     opacity: 1;
-}
-
-.btn-primary {
-    background-color: var(--primary);
-    color: white;
-    padding: 12px 28px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-}
-
-.btn-primary:active {
-    transform: scale(0.98);
 }

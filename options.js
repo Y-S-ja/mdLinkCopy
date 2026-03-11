@@ -16,8 +16,8 @@ function saveOptions() {
     chrome.storage.sync.set({
         'notice-duration': noticeDuration
     }, () => {
-        // 保存完了を通知
-        const status = document.getElementById('status');
+        // 保存完了を通知 (個別のステータスを表示)
+        const status = document.getElementById('status-notice-duration');
         status.classList.add('show');
         setTimeout(() => {
             status.classList.remove('show');
