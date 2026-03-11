@@ -130,24 +130,26 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-/* Switch UI */
-.switch-label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    cursor: pointer;
-}
-
-.slider {
+/* Switch UI Container */
+.switch {
     position: relative;
     display: inline-block;
     width: 44px;
     height: 24px;
+    cursor: pointer;
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: #cbd5e1;
     border-radius: 20px;
     transition: 0.3s;
 }
+
 
 .slider::before {
     content: "";

@@ -2,7 +2,8 @@
 const INITIAL_SETTINGS = {
     'notice-duration': 1000,
     'threshold': 60,
-    'base-len': 20
+    'base-len': 20,
+    'use-readable-url': true
 };
 
 // インストール時にコンテキストメニュー作成と初期設定の保存
@@ -185,25 +186,31 @@ async function dispatchCopy(tabId, url, text) {
 
 // 選択箇所のコピー共通処理
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
-    const items = await chrome.storage.sync.get(['threshold', 'base-len']);
+    const items = await chrome.storage.sync.get(['threshold', 'base-len', 'use-readable-url']);
     const threshold = items['threshold'] || 60;
     const baseLen = items['base-len'] || 20;
+    const useReadableUrl = items['use-readable-url'] !== false;
 
     const selectionText = generateTextFragmentParam(rawSelection, threshold, baseLen);
     const pageUrl = rawUrl.split('#')[0];
     const title = cleanLabel(tab.title);
 
     const fragment = `#:~:text=${selectionText}`;
-    const markdownLink = `[${title}](${getReadableUrl(pageUrl)}${fragment})`;
+    const finalUrl = useReadableUrl ? getReadableUrl(pageUrl) : pageUrl;
+    const markdownLink = `[${title}](${finalUrl}${fragment})`;
 
     dispatchCopy(tab.id, tab.url, markdownLink);
 }
 
 // ページ全体リンクのコピー共通処理
 async function copyPageLink(tab) {
+    const items = await chrome.storage.sync.get('use-readable-url');
+    const useReadableUrl = items['use-readable-url'] !== false;
+
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title);
-    const markdownLink = `[${title}](${getReadableUrl(pageUrl)})`;
+    const finalUrl = useReadableUrl ? getReadableUrl(pageUrl) : pageUrl;
+    const markdownLink = `[${title}](${finalUrl})`;
 
     dispatchCopy(tab.id, tab.url, markdownLink);
 }

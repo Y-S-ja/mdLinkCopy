@@ -1,11 +1,16 @@
-const settingIds = ['notice-duration', 'threshold', 'base-len'];
+const settingIds = ['notice-duration', 'threshold', 'base-len', 'use-readable-url'];
 
 // 設定を読み込む
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
         settingIds.forEach(id => {
+            const el = document.getElementById(id);
             if (items[id] !== undefined) {
-                document.getElementById(id).value = items[id];
+                if (el.type === 'checkbox') {
+                    el.checked = items[id];
+                } else {
+                    el.value = items[id];
+                }
             }
         });
     });
@@ -13,9 +18,15 @@ function restoreOptions() {
 
 // 設定を保存する汎用関数
 function saveSetting(id) {
-    const value = parseInt(document.getElementById(id).value, 10);
+    const el = document.getElementById(id);
+    let value;
 
-    if (isNaN(value) || value < 0) return;
+    if (el.type === 'checkbox') {
+        value = el.checked;
+    } else {
+        value = parseInt(el.value, 10);
+        if (isNaN(value) || value < 0) return;
+    }
 
     chrome.storage.sync.set({
         [id]: value
@@ -36,5 +47,8 @@ document.addEventListener('DOMContentLoaded', restoreOptions);
 
 // すべての入力項目にイベントリスナーを一括登録
 settingIds.forEach(id => {
-    document.getElementById(id).addEventListener('change', () => saveSetting(id));
+    const el = document.getElementById(id);
+    const eventType = el.type === 'checkbox' ? 'change' : 'change'; 
+    // checkboxもchangeイベントで即時反応する
+    el.addEventListener(eventType, () => saveSetting(id));
 });
