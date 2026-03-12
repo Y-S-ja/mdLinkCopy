@@ -328,7 +328,7 @@ function cleanLabel(text, bracketToZenkaku, pipeToZenkaku) {
 
     // | の処理
     if (pipeToZenkaku) {
-        cleaned = cleaned.replace(/\|/g, '｜');
+        cleaned = cleaned.replace(/\s*\|\s*/g, '｜');
     }
 
     return cleaned.trim(); // 前後の余計な空白を消す
