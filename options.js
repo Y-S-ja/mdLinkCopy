@@ -67,7 +67,7 @@ function updatePreview() {
 function togglePreviewPanel(show) {
     const panel = document.getElementById('preview-panel');
     const btn = document.getElementById('toggle-preview');
-    
+
     if (show) {
         panel.classList.remove('hidden');
         btn.textContent = '×';
@@ -79,14 +79,14 @@ function togglePreviewPanel(show) {
         btn.title = 'プレビューを表示';
         btn.classList.remove('active');
     }
-    
+
     chrome.storage.local.set({ 'preview-visible': show });
 }
 
 // 初期ロード時に復元
 document.addEventListener('DOMContentLoaded', () => {
     restoreOptions();
-    
+
     chrome.storage.local.get('preview-visible', (res) => {
         const isVisible = res['preview-visible'] !== false;
         togglePreviewPanel(isVisible);
