@@ -69,6 +69,7 @@ body {
 
 .preview-panel.hidden {
     width: 0;
+    height: 0; /* 追加: 縦方向のはみ出し（異常な高さ）を防止 */
     opacity: 0;
     transform: translateX(20px);
     pointer-events: none;
