@@ -200,6 +200,11 @@ body {
     background: var(--primary-hover);
 }
 
+.fab-button.active {
+    background: #64748b; /* 少し控えめな色に */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .fab-button.hidden {
     transform: scale(0);
     opacity: 0;

@@ -66,14 +66,18 @@ function updatePreview() {
 // パネルの表示・非表示を切り替える
 function togglePreviewPanel(show) {
     const panel = document.getElementById('preview-panel');
-    const fab = document.getElementById('open-preview');
+    const btn = document.getElementById('toggle-preview');
     
     if (show) {
         panel.classList.remove('hidden');
-        fab.classList.add('hidden');
+        btn.textContent = '×';
+        btn.title = 'プレビューを隠す';
+        btn.classList.add('active'); // 表示中スタイル
     } else {
         panel.classList.add('hidden');
-        fab.classList.remove('hidden');
+        btn.textContent = '👀';
+        btn.title = 'プレビューを表示';
+        btn.classList.remove('active');
     }
     
     chrome.storage.local.set({ 'preview-visible': show });
@@ -103,7 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('demo-title').addEventListener('input', updatePreview);
     document.getElementById('demo-selection').addEventListener('input', updatePreview);
 
-    // パネルの開閉ボタン
-    document.getElementById('close-preview').addEventListener('click', () => togglePreviewPanel(false));
-    document.getElementById('open-preview').addEventListener('click', () => togglePreviewPanel(true));
+    // プレビューの表示切替ボタン
+    document.getElementById('toggle-preview').addEventListener('click', () => {
+        const isHidden = document.getElementById('preview-panel').classList.contains('hidden');
+        togglePreviewPanel(isHidden);
+    });
 });
