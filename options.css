@@ -96,7 +96,7 @@ body {
     color: var(--text-light);
     cursor: pointer;
     line-height: 1;
-    padding: 4px;
+    padding: 4px 9px;
     border-radius: 50%;
     transition: background 0.2s;
 }
