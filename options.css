@@ -78,8 +78,10 @@ body {
     margin-left: -32px;
 }
 
-.preview-header, .preview-body {
-    width: 320px; /* パネルが縮んでも中身が潰れないように固定 */
+.preview-header,
+.preview-body {
+    min-width: 320px;
+    /* パネルが縮んでも中身が潰れないように固定 */
     flex-shrink: 0;
 }
 
