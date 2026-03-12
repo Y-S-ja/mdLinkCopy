@@ -36,19 +36,24 @@ body {
     display: flex;
     gap: 32px;
     align-items: flex-start;
+    justify-content: center;
+    /* 中央寄せ */
+    transition: all 0.3s ease;
 }
 
 .settings-column {
-    flex: 1;
+    width: 100%;
+    max-width: 600px; /* 最大幅を制限 */
     min-width: 0;
-    /* flexアイテムの縮小を許容 */
 }
 
 /* プレビューパネル */
 .preview-panel {
     width: 320px;
+    flex-shrink: 0;
     position: sticky;
     top: 40px;
+    z-index: 10;
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -201,6 +206,27 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* レスポンシブ対応: 1000px以下で縦並びの検討、またはプレビューを隠す等の処理 */
+@media (max-width: 950px) {
+    .content-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .preview-panel {
+        position: static;
+        width: 100%;
+        max-width: 600px;
+        order: -1; /* 小さい画面ではプレビューを上に（または任意の位置） */
+    }
+
+    .preview-panel.hidden {
+        display: none; /* 小さい画面で隠す時は完全に消す */
+        margin-left: 0;
     }
 }
 
