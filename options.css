@@ -43,7 +43,8 @@ body {
 
 .settings-column {
     width: 100%;
-    max-width: 600px; /* 最大幅を制限 */
+    max-width: 600px;
+    /* 最大幅を制限 */
     min-width: 0;
 }
 
@@ -221,11 +222,13 @@ body {
         position: static;
         width: 100%;
         max-width: 600px;
-        order: -1; /* 小さい画面ではプレビューを上に（または任意の位置） */
+        order: -1;
+        /* 小さい画面ではプレビューを上に（または任意の位置） */
     }
 
     .preview-panel.hidden {
-        display: none; /* 小さい画面で隠す時は完全に消す */
+        display: none;
+        /* 小さい画面で隠す時は完全に消す */
         margin-left: 0;
     }
 }
