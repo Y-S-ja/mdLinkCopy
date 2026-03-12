@@ -64,16 +64,23 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.4s ease, 
+                margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .preview-panel.hidden {
     width: 0;
-    height: 0; /* 追加: 縦方向のはみ出し（異常な高さ）を防止 */
     opacity: 0;
-    transform: translateX(20px);
+    transform: translateX(30px);
     pointer-events: none;
     margin-left: -32px;
+}
+
+.preview-header, .preview-body {
+    width: 320px; /* パネルが縮んでも中身が潰れないように固定 */
+    flex-shrink: 0;
 }
 
 .preview-header {
