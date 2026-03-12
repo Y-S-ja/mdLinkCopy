@@ -18,129 +18,158 @@
             <p class="subtitle">拡張機能の動作をカスタマイズします</p>
         </header>
 
-        <main>
-            <section class="card">
-                <h2>📝 ラベルの整形</h2>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">カッコ [ ] を全角に変換する</h3>
-                        <p class="desc">OFFにすると、リンク内の [ ] が削除されます</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-bracket-to-zenkaku" class="status-message">保存しました</span>
-                        <label class="switch">
-                            <input type="checkbox" id="bracket-to-zenkaku">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">パイプ | を全角に変換する</h3>
-                        <p class="desc">OFFにすると、そのまま半角で出力されます（テーブル崩れに注意）</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-pipe-to-zenkaku" class="status-message">保存しました</span>
-                        <label class="switch">
-                            <input type="checkbox" id="pipe-to-zenkaku">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>🔗 URLの形式</h2>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">URLをデコードして読みやすくする</h3>
-                        <p class="desc">ONにすると、日本語URLなどを読みやすい形式に変換します</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-use-readable-url" class="status-message">保存しました</span>
-                        <label class="switch">
-                            <input type="checkbox" id="use-readable-url">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">テキストフラグメントをデコードする</h3>
-                        <p class="desc">ONにすると、ハイライト箇所の日本語などを読みやすく変換します</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-use-readable-fragment" class="status-message">保存しました</span>
-                        <label class="switch">
-                            <input type="checkbox" id="use-readable-fragment">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>✂️ テキストの中略</h2>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">長い選択テキストを中略する</h3>
-                        <p class="desc">ONにすると、非常に長いテキストを「開始...,終了...」の形式に変換してURLを短縮します</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-use-start-end-format" class="status-message">保存しました</span>
-                        <label class="switch">
-                            <input type="checkbox" id="use-start-end-format">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">省略のしきい値 (文字数)</h3>
-                        <p class="desc">この文字数を超えると前後のみを抽出します</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-threshold" class="status-message">保存しました</span>
-                        <div class="input-group">
-                            <input type="number" id="threshold" min="30" max="200" step="5">
-                            <span class="unit">文字</span>
+        <div class="content-wrapper">
+            <main class="settings-column">
+                <section class="card">
+                    <h2>📝 ラベルの整形</h2>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">カッコ [ ] を全角に変換する</h3>
+                            <p class="desc">OFFにすると、リンク内の [ ] が削除されます</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-bracket-to-zenkaku" class="status-message">保存しました</span>
+                            <label class="switch">
+                                <input type="checkbox" id="bracket-to-zenkaku">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
-                </div>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">抽出する長さ (文字数)</h3>
-                        <p class="desc">最初と最後から何文字ずつ抽出するか指定します</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-base-len" class="status-message">保存しました</span>
-                        <div class="input-group">
-                            <input type="number" id="base-len" min="10" max="50" step="1">
-                            <span class="unit">文字</span>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">パイプ | を全角に変換する</h3>
+                            <p class="desc">OFFにすると、そのまま半角で出力されます（テーブル崩れに注意）</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-pipe-to-zenkaku" class="status-message">保存しました</span>
+                            <label class="switch">
+                                <input type="checkbox" id="pipe-to-zenkaku">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section class="card">
-                <h2>🔔 通知設定</h2>
-                <div class="setting-item">
-                    <div class="info">
-                        <h3 class="setting-title">通知の表示時間 (ミリ秒)</h3>
-                        <p class="desc">「Copied!」などの通知が消えるまでの時間です</p>
-                    </div>
-                    <div class="input-wrapper">
-                        <span id="status-notice-duration" class="status-message">保存しました</span>
-                        <div class="input-group">
-                            <input type="number" id="notice-duration" min="500" max="5000" step="100">
-                            <span class="unit">ms</span>
+                <section class="card">
+                    <h2>🔗 URLの形式</h2>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">URLをデコードして読みやすくする</h3>
+                            <p class="desc">ONにすると、日本語URLなどを読みやすい形式に変換します</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-use-readable-url" class="status-message">保存しました</span>
+                            <label class="switch">
+                                <input type="checkbox" id="use-readable-url">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">テキストフラグメントをデコードする</h3>
+                            <p class="desc">ONにすると、ハイライト箇所の日本語などを読みやすく変換します</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-use-readable-fragment" class="status-message">保存しました</span>
+                            <label class="switch">
+                                <input type="checkbox" id="use-readable-fragment">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>✂️ テキストの中略</h2>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">長い選択テキストを中略する</h3>
+                            <p class="desc">ONにすると、非常に長いテキストを「開始...,終了...」の形式に変換してURLを短縮します</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-use-start-end-format" class="status-message">保存しました</span>
+                            <label class="switch">
+                                <input type="checkbox" id="use-start-end-format">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">省略のしきい値 (文字数)</h3>
+                            <p class="desc">この文字数を超えると前後のみを抽出します</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-threshold" class="status-message">保存しました</span>
+                            <div class="input-group">
+                                <input type="number" id="threshold" min="30" max="200" step="5">
+                                <span class="unit">文字</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">抽出する長さ (文字数)</h3>
+                            <p class="desc">最初と最後から何文字ずつ抽出するか指定します</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-base-len" class="status-message">保存しました</span>
+                            <div class="input-group">
+                                <input type="number" id="base-len" min="10" max="50" step="1">
+                                <span class="unit">文字</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>🔔 通知設定</h2>
+                    <div class="setting-item">
+                        <div class="info">
+                            <h3 class="setting-title">通知の表示時間 (ミリ秒)</h3>
+                            <p class="desc">「Copied!」などの通知が消えるまでの時間です</p>
+                        </div>
+                        <div class="input-wrapper">
+                            <span id="status-notice-duration" class="status-message">保存しました</span>
+                            <div class="input-group">
+                                <input type="number" id="notice-duration" min="500" max="5000" step="100">
+                                <span class="unit">ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <aside id="preview-panel" class="preview-panel">
+                <div class="preview-header">
+                    <h2>👀 ライブプレビュー</h2>
+                    <button id="close-preview" class="icon-button" title="プレビューを隠す">×</button>
                 </div>
-            </section>
-        </main>
+                <div class="preview-body">
+                    <div class="demo-group">
+                        <label>ページタイトル</label>
+                        <input type="text" id="demo-title" value="[サンプル] ページタイトル | サイト名">
+                    </div>
+                    <div class="demo-group">
+                        <label>選択テキスト</label>
+                        <textarea id="demo-selection">これはプレビュー用のサンプルテキストです。非常に長いテキストを選択した場合、設定に基づいて「開始,終了」の形式に中略される様子を確認できます。</textarea>
+                    </div>
+                    <div class="demo-result">
+                        <label>生成されるMarkdown</label>
+                        <div class="result-box">
+                            <code id="preview-output">生成中...</code>
+                        </div>
+                    </div>
+                    <p class="preview-note">※設定を変更すると即座に反映されます</p>
+                </div>
+            </aside>
+        </div>
+
+        <button id="open-preview" class="fab-button hidden" title="プレビューを表示">
+            👀
+        </button>
     </div>
     <script src="options.js"></script>
 </body>
-
 </html>

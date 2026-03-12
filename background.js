@@ -36,6 +36,34 @@ chrome.runtime.onInstalled.addListener(async () => {
     }
 });
 
+// プレビュー生成用のメッセージリスナー
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    if (message.action === 'get-preview') {
+        const { demoTitle, demoSelection, demoUrl, settings } = message.data;
+
+        // ラベルの整形
+        const title = cleanLabel(demoTitle, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
+
+        // テキストフラグメントの生成
+        const selectionText = generateTextFragmentParam(
+            demoSelection,
+            settings['threshold'],
+            settings['base-len'],
+            settings['use-start-end-format'],
+            settings['use-readable-fragment']
+        );
+
+        const pageUrl = demoUrl.split('#')[0];
+        const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
+
+        const fragment = selectionText ? `#:~:text=${selectionText}` : '';
+        const markdownLink = `[${title}](${finalUrl}${fragment})`;
+
+        sendResponse({ markdownLink });
+        return true;
+    }
+});
+
 // コンテキストメニュー（右クリック）クリック時の処理
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
