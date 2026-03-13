@@ -250,11 +250,13 @@ body {
 
 header {
     margin-bottom: 32px;
+    text-align: center;
 }
 
 .logo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 16px;
     margin-bottom: 8px;
 }
