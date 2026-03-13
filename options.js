@@ -64,9 +64,13 @@ function updatePreview() {
 }
 
 // パネルの表示・非表示を切り替える
-function togglePreviewPanel(show) {
+function togglePreviewPanel(show, animate = true) {
     const panel = document.getElementById('preview-panel');
     const btn = document.getElementById('toggle-preview');
+
+    if (animate) {
+        panel.classList.add('is-animating');
+    }
 
     if (show) {
         panel.classList.remove('hidden');
@@ -80,6 +84,12 @@ function togglePreviewPanel(show) {
         btn.classList.remove('active');
     }
 
+    if (animate) {
+        setTimeout(() => {
+            panel.classList.remove('is-animating');
+        }, 400);
+    }
+
     chrome.storage.local.set({ 'preview-visible': show });
 }
 
@@ -89,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chrome.storage.local.get('preview-visible', (res) => {
         const isVisible = res['preview-visible'] !== false;
-        togglePreviewPanel(isVisible);
+        togglePreviewPanel(isVisible, false);
     });
 
     // すべての入力項目にイベントリスナーを一括登録

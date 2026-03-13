@@ -37,14 +37,11 @@ body {
     gap: 32px;
     align-items: flex-start;
     justify-content: center;
-    /* 中央寄せ */
-    transition: all 0.3s ease;
 }
 
 .settings-column {
     width: 100%;
     max-width: 600px;
-    /* 最大幅を制限 */
     min-width: 0;
 }
 
@@ -64,6 +61,10 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+/* 表示切り替え中だけアニメーションを有効にする */
+.preview-panel.is-animating {
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.4s ease,
@@ -226,8 +227,8 @@ body {
     }
 }
 
-/* レスポンシブ対応: 1000px以下で縦並びの検討、またはプレビューを隠す等の処理 */
-@media (max-width: 950px) {
+/* レスポンシブ対応 */
+@media (max-width: 1000px) {
     .content-wrapper {
         flex-direction: column;
         align-items: center;
@@ -239,12 +240,10 @@ body {
         width: 100%;
         max-width: 600px;
         order: -1;
-        /* 小さい画面ではプレビューを上に（または任意の位置） */
     }
 
     .preview-panel.hidden {
         display: none;
-        /* 小さい画面で隠す時は完全に消す */
         margin-left: 0;
     }
 }
