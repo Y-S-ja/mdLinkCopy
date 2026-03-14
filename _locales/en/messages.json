@@ -35,5 +35,19 @@
   "previewBtnShow": { "message": "Show Preview" },
   "previewBtnHide": { "message": "Hide Preview" },
   "unitChar": { "message": "chars" },
-  "unitMS": { "message": "ms" }
+  "unitMS": { "message": "ms" },
+  "cmdCopyPageDesc": { "message": "Copy Markdown link for the entire page" },
+  "cmdCopySelectionDesc": { "message": "Copy Markdown link for the selection" },
+  "contextMenuTitle": { "message": "Copy Markdown link for selection" },
+  "errPreviewGeneration": { "message": "Error occurred: " },
+  "errShortcutRestricted": { "message": "Shortcuts cannot extract text on this page.\nPlease try using the right-click menu." },
+  "errNoTextSelected": { "message": "No text found. Please select some text and try again." },
+  "errScriptBlocked": { "message": "Script execution blocked.\nPlease try copying via the right-click menu." },
+  "notifyRestrictedDefault": { "message": "Restricted page (Right-click menu recommended)" },
+  "notifyCopySuccessRestricted": { "message": "Markdown copied (System Notice for restricted page)" },
+  "notifyCopyFailedRestricted": { "message": "Copy failed (System Notice for restricted page)" },
+  "notifyCopyFailed": { "message": "Copy failed" },
+  "notifyCopySuccess": { "message": "Markdown copied (System notice)" },
+  "toastCopySuccess": { "message": "Markdown Copied!" },
+  "toastCopyFailed": { "message": "Copy Failed" }
 }

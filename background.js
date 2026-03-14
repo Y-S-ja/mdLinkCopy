@@ -20,7 +20,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     // Create context menu for text selection
     chrome.contextMenus.create({
         id: "copy-selection-markdown",
-        title: "選択箇所へのMarkdownリンクをコピー",
+        title: chrome.i18n.getMessage("contextMenuTitle") || "Copy Markdown link for selection",
         contexts: ["selection"]
     });
 
@@ -64,7 +64,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
             sendResponse({ markdownLink });
         } catch (err) {
             console.error('Preview generation failed:', err);
-            sendResponse({ markdownLink: "エラーが発生しました: " + err.message });
+            sendResponse({ markdownLink: (chrome.i18n.getMessage("errPreviewGeneration") || "Error: ") + err.message });
         }
         return true;
     }
@@ -99,7 +99,7 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 
         case "copy-selection-md": {
             if (isRestrictedPage(tab.url)) {
-                showSystemNotification('このページではショートカットキーでテキストを取得できません。\n右クリックで「選択箇所へのMarkdownリンクをコピー」をお試しください。');
+                showSystemNotification(chrome.i18n.getMessage("errShortcutRestricted"));
                 return;
             }
 
@@ -112,11 +112,11 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
                 if (selection) {
                     performSelectionCopy(selection, tab.url, tab);
                 } else {
-                    showSystemNotification('テキストが見つかりません。テキストを選択してから再度お試しください。');
+                    showSystemNotification(chrome.i18n.getMessage("errNoTextSelected"));
                 }
             } catch (err) {
                 console.error('Shortcut capture failed:', err);
-                showSystemNotification('スクリプトの実行がブロックされました。\n右クリックメニューでのコピーをお試しください。');
+                showSystemNotification(chrome.i18n.getMessage("errScriptBlocked"));
             }
             break;
         }
@@ -177,12 +177,13 @@ function isRestrictedPage(url) {
 }
 
 // Show a system notification when page script injection is restricted
-function showSystemNotification(message = '機能制限ページです（右クリックメニューを推奨）') {
+function showSystemNotification(message) {
+    const notifyMsg = message || chrome.i18n.getMessage("notifyRestrictedDefault") || "Restricted page";
     chrome.notifications.create({
         type: 'basic',
         iconUrl: 'images/icon192x192.png',
         title: 'Quick Md Copy',
-        message: message,
+        message: notifyMsg,
         silent: true
     });
 }
@@ -197,22 +198,25 @@ async function dispatchCopy(tabId, url, text) {
     if (isRestrictedPage(url)) {
         const success = await copyViaOffscreen(text);
         if (success) {
-            showSystemNotification('Markdownをコピーしました（※制限ページのためシステム通知）');
+            showSystemNotification(chrome.i18n.getMessage("notifyCopySuccessRestricted"));
         } else {
-            showSystemNotification('コピーに失敗しました（※制限ページのためシステム通知）');
+            showSystemNotification(chrome.i18n.getMessage("notifyCopyFailedRestricted"));
         }
     } else {
+        const msgSuccess = chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!";
+        const msgFailed = chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed";
+
         chrome.scripting.executeScript({
             target: { tabId: tabId },
             func: copyToClipboardWithNotice,
-            args: [text, duration]
+            args: [text, duration, msgSuccess, msgFailed]
         }).catch(async (err) => {
             console.warn('Script injection failed, trying offscreen fallback:', err);
             const success = await copyViaOffscreen(text);
             if (!success) {
-                showSystemNotification('コピーに失敗しました');
+                showSystemNotification(chrome.i18n.getMessage("notifyCopyFailed"));
             } else {
-                showSystemNotification('Markdownをコピーしました（※システム通知）');
+                showSystemNotification(chrome.i18n.getMessage("notifyCopySuccess"));
             }
         });
     }
@@ -279,12 +283,12 @@ async function copyViaOffscreen(text) {
 /**
  * Script injected into the page to copy text and show a temporary UI notification.
  */
-async function copyToClipboardWithNotice(text, duration) {
+async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) {
     try {
         await navigator.clipboard.writeText(text);
-        showNotice("Markdown Copied!", "#2ecc71", duration);
+        showNotice(msgSuccess || "Markdown Copied!", "#2ecc71", duration);
     } catch (err) {
-        showNotice("Copy Failed", "#e74c3c", duration);
+        showNotice(msgFailed || "Copy Failed", "#e74c3c", duration);
     }
 
     function showNotice(message, bgColor, displayMs) {

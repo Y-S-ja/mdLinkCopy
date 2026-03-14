@@ -41,13 +41,13 @@
             "suggested_key": {
                 "default": "Ctrl+M"
             },
-            "description": "ページ全体のMarkdownリンクをコピー"
+            "description": "__MSG_cmdCopyPageDesc__"
         },
         "copy-selection-md": {
             "suggested_key": {
                 "default": "Alt+M"
             },
-            "description": "選択箇所へのMarkdownリンクをコピー"
+            "description": "__MSG_cmdCopySelectionDesc__"
         }
     }
 }

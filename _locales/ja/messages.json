@@ -35,5 +35,19 @@
   "previewBtnShow": { "message": "プレビューを表示" },
   "previewBtnHide": { "message": "プレビューを隠す" },
   "unitChar": { "message": "文字" },
-  "unitMS": { "message": "ms" }
+  "unitMS": { "message": "ms" },
+  "cmdCopyPageDesc": { "message": "ページ全体のMarkdownリンクをコピー" },
+  "cmdCopySelectionDesc": { "message": "選択箇所へのMarkdownリンクをコピー" },
+  "contextMenuTitle": { "message": "選択箇所へのMarkdownリンクをコピー" },
+  "errPreviewGeneration": { "message": "エラーが発生しました: " },
+  "errShortcutRestricted": { "message": "このページではショートカットキーでテキストを取得できません。\n右クリックで「選択箇所へのMarkdownリンクをコピー」をお試しください。" },
+  "errNoTextSelected": { "message": "テキストが見つかりません。テキストを選択してから再度お試しください。" },
+  "errScriptBlocked": { "message": "スクリプトの実行がブロックされました。\n右クリックメニューでのコピーをお試しください。" },
+  "notifyRestrictedDefault": { "message": "機能制限ページです（右クリックメニューを推奨）" },
+  "notifyCopySuccessRestricted": { "message": "Markdownをコピーしました（※制限ページのためシステム通知）" },
+  "notifyCopyFailedRestricted": { "message": "コピーに失敗しました（※制限ページのためシステム通知）" },
+  "notifyCopyFailed": { "message": "コピーに失敗しました" },
+  "notifyCopySuccess": { "message": "Markdownをコピーしました（※システム通知）" },
+  "toastCopySuccess": { "message": "Markdownをコピーしました！" },
+  "toastCopyFailed": { "message": "コピーに失敗しました" }
 }
