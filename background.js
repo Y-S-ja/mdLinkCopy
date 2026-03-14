@@ -12,7 +12,9 @@ const INITIAL_SETTINGS = {
     'use-start-end-format': true,
     'use-readable-fragment': true,
     'bracket-to-zenkaku': true,
-    'pipe-to-zenkaku': true
+    'pipe-to-zenkaku': true,
+    'toast-msg-success': '',
+    'toast-msg-failed': ''
 };
 
 // Initialize extension settings and context menus on installation
@@ -191,9 +193,17 @@ function showSystemNotification(message) {
 /**
  * Unified function to handle clipboard writes either via page script injection or offscreen document.
  */
+// Handle the core logic for copying a Markdown link to the clipboard
 async function dispatchCopy(tabId, url, text) {
-    const items = await chrome.storage.sync.get('notice-duration');
+    const items = await chrome.storage.sync.get(['notice-duration', 'toast-msg-success', 'toast-msg-failed']);
     const duration = items['notice-duration'] || 1000;
+    
+    const userMsgSuccess = items['toast-msg-success'];
+    const userMsgFailed = items['toast-msg-failed'];
+    
+    // Fallback to defaults if the user has left the setting empty
+    const msgSuccess = userMsgSuccess ? userMsgSuccess : (chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!");
+    const msgFailed = userMsgFailed ? userMsgFailed : (chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed");
 
     if (isRestrictedPage(url)) {
         const success = await copyViaOffscreen(text);
@@ -203,9 +213,6 @@ async function dispatchCopy(tabId, url, text) {
             showSystemNotification(chrome.i18n.getMessage("notifyCopyFailedRestricted"));
         }
     } else {
-        const msgSuccess = chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!";
-        const msgFailed = chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed";
-
         chrome.scripting.executeScript({
             target: { tabId: tabId },
             func: copyToClipboardWithNotice,

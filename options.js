@@ -11,19 +11,38 @@ const settingIds = [
     'use-start-end-format', 
     'use-readable-fragment', 
     'bracket-to-zenkaku', 
-    'pipe-to-zenkaku'
+    'pipe-to-zenkaku',
+    'toast-msg-success',
+    'toast-msg-failed'
 ];
+
+// Mapping of text setting IDs to their default translated fallback strings
+const defaultTextSettings = {
+    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!",
+    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed"
+};
 
 // Load settings from chrome.storage.sync
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
         settingIds.forEach(id => {
             const el = document.getElementById(id);
-            if (el && items[id] !== undefined) {
-                if (el.type === 'checkbox') {
-                    el.checked = items[id];
-                } else {
-                    el.value = items[id];
+            if (el) {
+                if (items[id] !== undefined) {
+                    if (el.type === 'checkbox') {
+                        el.checked = items[id];
+                    } else if (el.type === 'text') {
+                        let textVal = items[id];
+                        if (textVal.trim() === '' && defaultTextSettings[id]) {
+                            textVal = defaultTextSettings[id]();
+                        }
+                        el.value = textVal;
+                    } else {
+                        el.value = items[id];
+                    }
+                } else if (el.type === 'text' && defaultTextSettings[id]) {
+                    // Inject default strings if not stored yet
+                    el.value = defaultTextSettings[id]();
                 }
             }
         });
@@ -58,6 +77,12 @@ function saveSetting(id) {
 
     if (el.type === 'checkbox') {
         value = el.checked;
+    } else if (el.type === 'text') {
+        value = el.value.trim();
+        if (value === '' && defaultTextSettings[id]) {
+            value = defaultTextSettings[id]();
+            el.value = value;
+        }
     } else {
         value = parseInt(el.value, 10);
         if (isNaN(value)) return;

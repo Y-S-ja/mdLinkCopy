@@ -237,7 +237,8 @@ body {
         opacity: 0;
         transform: translateY(-20px);
         margin-left: 0;
-        margin-bottom: -20px; /* Counteract flex gap */
+        margin-bottom: -20px;
+        /* Counteract flex gap */
         border-width: 0;
         pointer-events: none;
     }
@@ -323,16 +324,26 @@ header {
 }
 
 /* --- Form Elements --- */
-input[type="number"] {
-    field-sizing: content;
-    min-width: 60px;
-    max-width: 120px;
+input[type="number"],
+.settings-column input[type="text"] {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid var(--border);
     font-size: 0.9rem;
     transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="number"] {
+    field-sizing: content;
+    min-width: 60px;
+    max-width: 120px;
     text-align: right;
+}
+
+.settings-column input[type="text"] {
+    width: 200px;
+    text-align: left;
+    background: #ffffff;
 }
 
 input:focus {
