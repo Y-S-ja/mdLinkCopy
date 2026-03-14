@@ -4,13 +4,13 @@
  */
 
 const settingIds = [
-    'notice-duration', 
-    'threshold', 
-    'base-len', 
-    'use-readable-url', 
-    'use-start-end-format', 
-    'use-readable-fragment', 
-    'bracket-to-zenkaku', 
+    'notice-duration',
+    'threshold',
+    'base-len',
+    'use-readable-url',
+    'use-start-end-format',
+    'use-readable-fragment',
+    'bracket-to-zenkaku',
     'pipe-to-zenkaku',
     'toast-msg-success-type',
     'toast-msg-success',
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     restoreOptions();
-    
+
     // Restore preview panel visibility
     chrome.storage.local.get('preview-visible', (res) => {
         const isVisible = res['preview-visible'] !== false;

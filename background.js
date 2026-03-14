@@ -214,12 +214,12 @@ function showSystemNotification(message) {
 async function dispatchCopy(tabId, url, text) {
     const items = await chrome.storage.sync.get(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
     const duration = items['notice-duration'] || INITIAL_SETTINGS['notice-duration'];
-    
+
     // Resolve UI languages using messages.json mapping or fallback to manifest default locale
     const uiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
     const typeSuccess = items['toast-msg-success-type'] || uiLang;
     const typeFailed = items['toast-msg-failed-type'] || uiLang;
-    
+
     // Determine the success message
     let msgSuccess = '';
     if (OVERRIDE_MESSAGES[typeSuccess]) {
@@ -227,7 +227,7 @@ async function dispatchCopy(tabId, url, text) {
     } else {
         msgSuccess = items['toast-msg-success'] || (chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success);
     }
-    
+
     // Determine the failed message
     let msgFailed = '';
     if (OVERRIDE_MESSAGES[typeFailed]) {
