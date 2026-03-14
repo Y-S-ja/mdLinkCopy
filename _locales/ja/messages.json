@@ -1,0 +1,16 @@
+{
+  "extName": {
+    "message": "Quick Md Copy",
+    "description": "拡張機能の名前"
+  },
+  "extDesc": {
+    "message": "アイコンクリックでMarkdownリンクを即座にコピー",
+    "description": "拡張機能の説明文"
+  },
+  "optionsPageTitle": {
+    "message": "Quick Md Copy - 設定"
+  },
+  "optionsSubtitle": {
+    "message": "拡張機能の動作をカスタマイズします"
+  }
+}

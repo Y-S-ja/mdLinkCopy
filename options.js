@@ -115,6 +115,14 @@ function togglePreviewPanel(show, animate = true) {
 
 // Initialize individual setting listeners and handle page load
 document.addEventListener('DOMContentLoaded', () => {
+    // 画面内の言語を切り替える (i18n)
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const message = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
+        if (message) {
+            el.textContent = message;
+        }
+    });
+
     restoreOptions();
     
     // Restore preview panel visibility
