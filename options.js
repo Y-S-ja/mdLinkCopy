@@ -1,6 +1,20 @@
-const settingIds = ['notice-duration', 'threshold', 'base-len', 'use-readable-url', 'use-start-end-format', 'use-readable-fragment', 'bracket-to-zenkaku', 'pipe-to-zenkaku'];
+/**
+ * Quick Md Copy - Options Page Logic
+ * Manages user settings, live preview updates, and panel visibility.
+ */
 
-// 設定を読み込む
+const settingIds = [
+    'notice-duration', 
+    'threshold', 
+    'base-len', 
+    'use-readable-url', 
+    'use-start-end-format', 
+    'use-readable-fragment', 
+    'bracket-to-zenkaku', 
+    'pipe-to-zenkaku'
+];
+
+// Load settings from chrome.storage.sync
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
         settingIds.forEach(id => {
@@ -13,11 +27,11 @@ function restoreOptions() {
                 }
             }
         });
-        updatePreview(); // ロード直後にプレビューを更新
+        updatePreview(); // Initialize preview after loading settings
     });
 }
 
-// 設定を保存する汎用関数
+// Save a specific setting to chrome.storage.sync
 function saveSetting(id) {
     const el = document.getElementById(id);
     let value;
@@ -29,9 +43,8 @@ function saveSetting(id) {
         if (isNaN(value) || value < 0) return;
     }
 
-    chrome.storage.sync.set({
-        [id]: value
-    }, () => {
+    chrome.storage.sync.set({ [id]: value }, () => {
+        // Show "Saved" status message temporarily
         const status = document.getElementById(`status-${id}`);
         if (status) {
             status.classList.add('show');
@@ -42,7 +55,7 @@ function saveSetting(id) {
     });
 }
 
-// プレビューを更新する関数
+// Request the background script to generate a live preview
 function updatePreview() {
     chrome.storage.sync.get(settingIds, (settings) => {
         const data = {
@@ -57,16 +70,22 @@ function updatePreview() {
             data: data
         }, (response) => {
             if (response && response.markdownLink) {
-                document.getElementById('preview-output').textContent = response.markdownLink;
+                const output = document.getElementById('preview-output');
+                if (output) output.textContent = response.markdownLink;
             }
         });
     });
 }
 
-// パネルの表示・非表示を切り替える
+/**
+ * Toggle the visibility of the preview panel with animation.
+ * @param {boolean} show - Whether to show the panel.
+ * @param {boolean} animate - Whether to apply transition effects.
+ */
 function togglePreviewPanel(show, animate = true) {
     const panel = document.getElementById('preview-panel');
     const btn = document.getElementById('toggle-preview');
+    if (!panel || !btn) return;
 
     if (animate) {
         panel.classList.add('is-animating');
@@ -76,7 +95,7 @@ function togglePreviewPanel(show, animate = true) {
         panel.classList.remove('hidden');
         btn.textContent = '×';
         btn.title = 'プレビューを隠す';
-        btn.classList.add('active'); // 表示中スタイル
+        btn.classList.add('active');
     } else {
         panel.classList.add('hidden');
         btn.textContent = '👀';
@@ -90,19 +109,21 @@ function togglePreviewPanel(show, animate = true) {
         }, 400);
     }
 
+    // Persist panel visibility state locally
     chrome.storage.local.set({ 'preview-visible': show });
 }
 
-// 初期ロード時に復元
+// Initialize individual setting listeners and handle page load
 document.addEventListener('DOMContentLoaded', () => {
     restoreOptions();
-
+    
+    // Restore preview panel visibility
     chrome.storage.local.get('preview-visible', (res) => {
         const isVisible = res['preview-visible'] !== false;
         togglePreviewPanel(isVisible, false);
     });
 
-    // すべての入力項目にイベントリスナーを一括登録
+    // Register change listeners for all settings
     settingIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -113,13 +134,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // デモ用の入力項目にもイベントリスナーを追加
-    document.getElementById('demo-title').addEventListener('input', updatePreview);
-    document.getElementById('demo-selection').addEventListener('input', updatePreview);
+    // Listeners for demo inputs
+    const demoTitle = document.getElementById('demo-title');
+    const demoSelection = document.getElementById('demo-selection');
+    if (demoTitle) demoTitle.addEventListener('input', updatePreview);
+    if (demoSelection) demoSelection.addEventListener('input', updatePreview);
 
-    // プレビューの表示切替ボタン
-    document.getElementById('toggle-preview').addEventListener('click', () => {
-        const isHidden = document.getElementById('preview-panel').classList.contains('hidden');
-        togglePreviewPanel(isHidden);
-    });
+    // Floating toggle button
+    const toggleBtn = document.getElementById('toggle-preview');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = document.getElementById('preview-panel').classList.contains('hidden');
+            togglePreviewPanel(isHidden);
+        });
+    }
 });

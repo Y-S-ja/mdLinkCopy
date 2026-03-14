@@ -27,7 +27,6 @@ body {
 .container {
     width: 100%;
     max-width: 1000px;
-    /* 2カラム用に広げる */
     margin: 0 auto;
     animation: fadeIn 0.5s ease-out;
 }
@@ -45,7 +44,7 @@ body {
     min-width: 0;
 }
 
-/* プレビューパネル */
+/* --- Preview Panel Styles --- */
 .preview-panel {
     width: 320px;
     flex-shrink: 0;
@@ -63,7 +62,7 @@ body {
     overflow: hidden;
 }
 
-/* 表示切り替え中だけアニメーションを有効にする */
+/* Enable transitions only while toggling via JS class */
 .preview-panel.is-animating {
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
@@ -82,7 +81,6 @@ body {
 .preview-header,
 .preview-body {
     min-width: 320px;
-    /* パネルが縮んでも中身が潰れないように固定 */
     flex-shrink: 0;
 }
 
@@ -98,23 +96,6 @@ body {
 .preview-header h2 {
     font-size: 1rem;
     margin-bottom: 0;
-}
-
-.icon-button {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--text-light);
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px 9px;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.icon-button:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--text);
 }
 
 .preview-body {
@@ -180,7 +161,7 @@ body {
     text-align: center;
 }
 
-/* フローティングボタン */
+/* --- Floating Action Button (FAB) --- */
 .fab-button {
     position: fixed;
     bottom: 30px;
@@ -205,7 +186,6 @@ body {
 
 .fab-button.active {
     background: #64748b;
-    /* 少し控えめな色に */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -227,7 +207,7 @@ body {
     }
 }
 
-/* レスポンシブ対応 */
+/* --- Responsive Layout --- */
 @media (max-width: 1000px) {
     .content-wrapper {
         flex-direction: column;
@@ -240,6 +220,7 @@ body {
         width: 100%;
         max-width: 600px;
         order: -1;
+        transition: none !important;
     }
 
     .preview-panel.hidden {
@@ -282,6 +263,7 @@ header {
     font-size: 0.95rem;
 }
 
+/* --- Card & Setting Items --- */
 .card {
     background: var(--card-bg);
     border-radius: 16px;
@@ -307,18 +289,9 @@ header {
     padding: 8px 0;
 }
 
-.setting-item:first-of-type {
-    padding-top: 8px;
-}
-
-.setting-item:last-of-type {
-    padding-bottom: 8px;
-}
-
 .setting-item+.setting-item {
     border-top: 1px solid #f1f5f9;
 }
-
 
 .info {
     flex: 1;
@@ -335,12 +308,12 @@ header {
     color: var(--text-light);
 }
 
+/* --- Form Elements --- */
 input[type="number"] {
     field-sizing: content;
     min-width: 60px;
     max-width: 120px;
     padding: 10px 12px;
-    padding-left: 28px;
     border-radius: 8px;
     border: 1px solid var(--border);
     font-size: 0.9rem;
@@ -354,7 +327,7 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-/* Switch UI Container */
+/* Toggle Switch UI */
 .switch {
     position: relative;
     display: inline-block;
@@ -373,7 +346,6 @@ input:focus {
     border-radius: 20px;
     transition: 0.3s;
 }
-
 
 .slider::before {
     content: "";
@@ -419,7 +391,6 @@ input:checked+.slider::before {
     gap: 8px;
     width: fit-content;
     min-width: 100px;
-    /* 保存メッセージの表示領域を確保 */
 }
 
 .status-message {
