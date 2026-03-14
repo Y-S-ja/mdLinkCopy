@@ -60,7 +60,27 @@ function saveSetting(id) {
         value = el.checked;
     } else {
         value = parseInt(el.value, 10);
-        if (isNaN(value) || value < 0) return;
+        if (isNaN(value)) return;
+
+        // Clamp the value to min/max if the attributes exist
+        if (el.hasAttribute('min')) {
+            const minVal = parseInt(el.getAttribute('min'), 10);
+            if (!isNaN(minVal) && value < minVal) {
+                value = minVal;
+            }
+        }
+        if (el.hasAttribute('max')) {
+            const maxVal = parseInt(el.getAttribute('max'), 10);
+            if (!isNaN(maxVal) && value > maxVal) {
+                value = maxVal;
+            }
+        }
+
+        // Fallback for non-negative values if no min is specified
+        if (value < 0) value = 0;
+
+        // Update the UI input field to visually reflect the clamped value
+        el.value = value;
     }
 
     chrome.storage.sync.set({ [id]: value }, () => {
