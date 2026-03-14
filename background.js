@@ -371,6 +371,7 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
 
     // Start Part extraction (find the best word boundary near baseLen)
     let startPart = "";
+    let actualStartEndIdx = baseLen;
     if (segmenter) {
         const segments = Array.from(segmenter.segment(cleanText));
         for (const segment of segments) {
@@ -386,8 +387,8 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
                 const isStartBoundaryCloser = distanceToStart < distanceToEnd;
                 const useSegmentStart = isStartBoundaryCloser && segmentStartIdx > 0;
 
-                const finalLen = useSegmentStart ? segmentStartIdx : segmentEndIdx;
-                startPart = cleanText.substring(0, finalLen);
+                actualStartEndIdx = useSegmentStart ? segmentStartIdx : segmentEndIdx;
+                startPart = cleanText.substring(0, actualStartEndIdx);
                 break;
             }
         }
@@ -397,11 +398,13 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
         const startExtension = followingText.match(/^[^\s,.;:!?]*/);
         if (startExtension) {
             startPart += startExtension[0];
+            actualStartEndIdx = baseLen + startExtension[0].length;
         }
     }
 
     // End Part extraction (find the best word boundary near the end)
     let endPart = "";
+    let actualEndStartIdx = cleanText.length - baseLen;
     if (segmenter) {
         const segments = Array.from(segmenter.segment(cleanText));
         const targetIdx = cleanText.length - baseLen;
@@ -418,8 +421,8 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
                 const isEndBoundaryCloser = distanceToEnd < distanceToStart;
                 const useSegmentEnd = isEndBoundaryCloser && segmentEndIdx < cleanText.length;
 
-                const finalStartIdx = useSegmentEnd ? segmentEndIdx : segmentStartIdx;
-                endPart = cleanText.substring(finalStartIdx);
+                actualEndStartIdx = useSegmentEnd ? segmentEndIdx : segmentStartIdx;
+                endPart = cleanText.substring(actualEndStartIdx);
                 break;
             }
         }
@@ -429,7 +432,13 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
         const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
         if (endExtension) {
             endPart = endExtension[0] + endPart;
+            actualEndStartIdx = cleanText.length - baseLen - endExtension[0].length;
         }
+    }
+
+    // Prevent overlap duplication: return full text if start and end boundaries cross
+    if (actualStartEndIdx >= actualEndStartIdx) {
+        return encoder(cleanText);
     }
 
     return `${encoder(startPart)},${encoder(endPart)}`;

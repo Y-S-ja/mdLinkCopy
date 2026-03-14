@@ -27,8 +27,28 @@ function restoreOptions() {
                 }
             }
         });
+        enforceBaseLenLimit(); // Apply limits based on loaded values
         updatePreview(); // Initialize preview after loading settings
     });
+}
+
+// Adjust the maximum attribute for base-len dynamically and clamp it if necessary
+function enforceBaseLenLimit() {
+    const thresholdEl = document.getElementById('threshold');
+    const baseLenEl = document.getElementById('base-len');
+    if (!thresholdEl || !baseLenEl) return;
+
+    const thresholdVal = parseInt(thresholdEl.value, 10);
+    if (isNaN(thresholdVal)) return;
+
+    const maxBaseLen = Math.floor(thresholdVal / 2);
+    baseLenEl.max = maxBaseLen; // Update UI max attribute
+
+    const currentBaseLen = parseInt(baseLenEl.value, 10);
+    if (!isNaN(currentBaseLen) && currentBaseLen > maxBaseLen) {
+        baseLenEl.value = maxBaseLen;
+        chrome.storage.sync.set({ 'base-len': maxBaseLen }); // Persist clamped value
+    }
 }
 
 // Save a specific setting to chrome.storage.sync
@@ -148,6 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('change', () => {
+                if (id === 'threshold' || id === 'base-len') {
+                    enforceBaseLenLimit();
+                }
                 saveSetting(id);
                 updatePreview();
             });
