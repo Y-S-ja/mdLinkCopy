@@ -157,7 +157,12 @@ function saveSetting(id) {
 
     chrome.storage.sync.set({ [id]: value }, () => {
         // Show "Saved" status message temporarily
-        const status = document.getElementById(`status-${id}`);
+        // For toast-msg-type settings, use the base setting status ID
+        let statusId = `status-${id}`;
+        if (id === 'toast-msg-success-type') statusId = 'status-toast-msg-success';
+        if (id === 'toast-msg-failed-type') statusId = 'status-toast-msg-failed';
+        
+        const status = document.getElementById(statusId);
         if (status) {
             status.classList.add('show');
             setTimeout(() => {
