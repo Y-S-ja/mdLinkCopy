@@ -1,16 +1,39 @@
 {
-  "extName": {
-    "message": "Quick Md Copy",
-    "description": "拡張機能の名前"
-  },
-  "extDesc": {
-    "message": "アイコンクリックでMarkdownリンクを即座にコピー",
-    "description": "拡張機能の説明文"
-  },
-  "optionsPageTitle": {
-    "message": "Quick Md Copy - 設定"
-  },
-  "optionsSubtitle": {
-    "message": "拡張機能の動作をカスタマイズします"
-  }
+  "extName": { "message": "Quick Md Copy" },
+  "extDesc": { "message": "アイコンクリックでMarkdownリンクを即座にコピー" },
+  "optionsPageTitle": { "message": "Quick Md Copy - 設定" },
+  "optionsSubtitle": { "message": "拡張機能の動作をカスタマイズします" },
+  "sectLabelFormat": { "message": "📝 ラベルの整形" },
+  "bracketTitle": { "message": "カッコ [ ] を全角に変換する" },
+  "bracketDesc": { "message": "OFFにすると、リンク内の [ ] が削除されます" },
+  "pipeTitle": { "message": "パイプ | を全角に変換する" },
+  "pipeDesc": { "message": "OFFにすると、そのまま半角で出力されます（テーブル崩れに注意）" },
+  "sectUrlFormat": { "message": "🔗 URLの形式" },
+  "urlDecodeTitle": { "message": "URLをデコードして読みやすくする" },
+  "urlDecodeDesc": { "message": "ONにすると、日本語URLなどを読みやすい形式に変換します" },
+  "fragDecodeTitle": { "message": "テキストフラグメントをデコードする" },
+  "fragDecodeDesc": { "message": "ONにすると、ハイライト箇所の日本語などを読みやすく変換します" },
+  "sectTextTrunc": { "message": "✂️ テキストの中略" },
+  "truncFormatTitle": { "message": "長い選択テキストを中略する" },
+  "truncFormatDesc": { "message": "ONにすると、非常に長いテキストを「開始...,終了...」の形式に変換してURLを短縮します" },
+  "truncThresholdTitle": { "message": "省略のしきい値 (文字数)" },
+  "truncThresholdDesc": { "message": "この文字数を超えると前後のみを抽出します" },
+  "truncBaseLenTitle": { "message": "抽出する長さ (文字数)" },
+  "truncBaseLenDesc": { "message": "最初と最後から何文字ずつ抽出するか指定します" },
+  "sectNotification": { "message": "🔔 通知設定" },
+  "noticeDurationTitle": { "message": "通知の表示時間 (ミリ秒)" },
+  "noticeDurationDesc": { "message": "「Copied!」などの通知が消えるまでの時間です" },
+  "previewSectTitle": { "message": "👀 ライブプレビュー" },
+  "previewTitleLabel": { "message": "ページタイトル" },
+  "previewTitleVal": { "message": "[サンプル] ページタイトル | サイト名" },
+  "previewSelLabel": { "message": "選択テキスト" },
+  "previewSelVal": { "message": "これはプレビュー用のサンプルテキストです。非常に長いテキストを選択した場合、設定に基づいて「開始,終了」の形式に中略される様子を確認できます。" },
+  "previewOutputLabel": { "message": "生成されるMarkdown" },
+  "previewOutputInit": { "message": "生成中..." },
+  "previewNote": { "message": "※設定を変更すると即座に反映されます" },
+  "statusSaved": { "message": "保存しました" },
+  "previewBtnShow": { "message": "プレビューを表示" },
+  "previewBtnHide": { "message": "プレビューを隠す" },
+  "unitChar": { "message": "文字" },
+  "unitMS": { "message": "ms" }
 }

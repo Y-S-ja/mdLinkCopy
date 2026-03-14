@@ -94,12 +94,12 @@ function togglePreviewPanel(show, animate = true) {
     if (show) {
         panel.classList.remove('hidden');
         btn.textContent = '×';
-        btn.title = 'プレビューを隠す';
+        btn.title = chrome.i18n.getMessage("previewBtnHide") || 'プレビューを隠す';
         btn.classList.add('active');
     } else {
         panel.classList.add('hidden');
         btn.textContent = '👀';
-        btn.title = 'プレビューを表示';
+        btn.title = chrome.i18n.getMessage("previewBtnShow") || 'プレビューを表示';
         btn.classList.remove('active');
     }
 
@@ -119,7 +119,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const message = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
         if (message) {
-            el.textContent = message;
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.value = message;
+            } else {
+                el.textContent = message;
+            }
+        }
+    });
+
+    // ツールチップ用 (title属性) の切り替え
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const message = chrome.i18n.getMessage(el.getAttribute('data-i18n-title'));
+        if (message) {
+            el.title = message;
         }
     });
 

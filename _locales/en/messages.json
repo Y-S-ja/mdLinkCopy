@@ -1,14 +1,39 @@
 {
-  "extName": {
-    "message": "Quick Md Copy"
-  },
-  "extDesc": {
-    "message": "Instantly copy Markdown links with a single click"
-  },
-  "optionsPageTitle": {
-    "message": "Quick Md Copy - Settings"
-  },
-  "optionsSubtitle": {
-    "message": "Customize the extension's behavior"
-  }
+  "extName": { "message": "Quick Md Copy" },
+  "extDesc": { "message": "Instantly copy Markdown links with a single click" },
+  "optionsPageTitle": { "message": "Quick Md Copy - Settings" },
+  "optionsSubtitle": { "message": "Customize the extension's behavior" },
+  "sectLabelFormat": { "message": "📝 Label Formatting" },
+  "bracketTitle": { "message": "Convert brackets [ ] to full-width" },
+  "bracketDesc": { "message": "If OFF, brackets will be removed from the link text." },
+  "pipeTitle": { "message": "Convert pipe | to full-width" },
+  "pipeDesc": { "message": "If OFF, outputs as half-width (may break Markdown tables)." },
+  "sectUrlFormat": { "message": "🔗 URL Formatting" },
+  "urlDecodeTitle": { "message": "Decode URLs to readable format" },
+  "urlDecodeDesc": { "message": "If ON, encoded URLs (e.g. Japanese chars) are decoded." },
+  "fragDecodeTitle": { "message": "Decode Text Fragments" },
+  "fragDecodeDesc": { "message": "If ON, encoded text fragments in URLs will be decoded." },
+  "sectTextTrunc": { "message": "✂️ Text Truncation" },
+  "truncFormatTitle": { "message": "Truncate very long selected text" },
+  "truncFormatDesc": { "message": "If ON, ultra-long text will be shortened using the 'Start...,End...' format." },
+  "truncThresholdTitle": { "message": "Truncation Threshold (Chars)" },
+  "truncThresholdDesc": { "message": "Text longer than this limit will be truncated." },
+  "truncBaseLenTitle": { "message": "Extraction Length (Chars)" },
+  "truncBaseLenDesc": { "message": "Number of characters to extract from start and end." },
+  "sectNotification": { "message": "🔔 Notification Settings" },
+  "noticeDurationTitle": { "message": "Notification Duration (ms)" },
+  "noticeDurationDesc": { "message": "Time until the 'Copied!' toast disappears." },
+  "previewSectTitle": { "message": "👀 Live Preview" },
+  "previewTitleLabel": { "message": "Page Title" },
+  "previewTitleVal": { "message": "[Sample] Page Title | Site Name" },
+  "previewSelLabel": { "message": "Selected Text" },
+  "previewSelVal": { "message": "This is a sample text for the live preview. If you select a very long text, you can see how it is truncated into 'Start...,End...' format based on your settings." },
+  "previewOutputLabel": { "message": "Generated Markdown" },
+  "previewOutputInit": { "message": "Generating..." },
+  "previewNote": { "message": "* Changes are applied immediately." },
+  "statusSaved": { "message": "Saved" },
+  "previewBtnShow": { "message": "Show Preview" },
+  "previewBtnHide": { "message": "Hide Preview" },
+  "unitChar": { "message": "chars" },
+  "unitMS": { "message": "ms" }
 }
