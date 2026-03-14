@@ -13,8 +13,25 @@ const INITIAL_SETTINGS = {
     'use-readable-fragment': true,
     'bracket-to-zenkaku': true,
     'pipe-to-zenkaku': true,
+    'toast-msg-success-type': '',
     'toast-msg-success': '',
+    'toast-msg-failed-type': '',
     'toast-msg-failed': ''
+};
+
+// Global fallback language obtained directly from manifest file
+const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
+
+// Locale-specific static overrides for UI languages
+const OVERRIDE_MESSAGES = {
+    ja: {
+        success: "Markdownをコピーしました！",
+        failed: "コピーに失敗しました"
+    },
+    en: {
+        success: "Markdown Copied!",
+        failed: "Copy Failed"
+    }
 };
 
 // Initialize extension settings and context menus on installation
@@ -195,15 +212,29 @@ function showSystemNotification(message) {
  */
 // Handle the core logic for copying a Markdown link to the clipboard
 async function dispatchCopy(tabId, url, text) {
-    const items = await chrome.storage.sync.get(['notice-duration', 'toast-msg-success', 'toast-msg-failed']);
-    const duration = items['notice-duration'] || 1000;
+    const items = await chrome.storage.sync.get(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
+    const duration = items['notice-duration'] || INITIAL_SETTINGS['notice-duration'];
     
-    const userMsgSuccess = items['toast-msg-success'];
-    const userMsgFailed = items['toast-msg-failed'];
+    // Resolve UI languages using messages.json mapping or fallback to manifest default locale
+    const uiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
+    const typeSuccess = items['toast-msg-success-type'] || uiLang;
+    const typeFailed = items['toast-msg-failed-type'] || uiLang;
     
-    // Fallback to defaults if the user has left the setting empty
-    const msgSuccess = userMsgSuccess ? userMsgSuccess : (chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!");
-    const msgFailed = userMsgFailed ? userMsgFailed : (chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed");
+    // Determine the success message
+    let msgSuccess = '';
+    if (OVERRIDE_MESSAGES[typeSuccess]) {
+        msgSuccess = OVERRIDE_MESSAGES[typeSuccess].success;
+    } else {
+        msgSuccess = items['toast-msg-success'] || (chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success);
+    }
+    
+    // Determine the failed message
+    let msgFailed = '';
+    if (OVERRIDE_MESSAGES[typeFailed]) {
+        msgFailed = OVERRIDE_MESSAGES[typeFailed].failed;
+    } else {
+        msgFailed = items['toast-msg-failed'] || (chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed);
+    }
 
     if (isRestrictedPage(url)) {
         const success = await copyViaOffscreen(text);

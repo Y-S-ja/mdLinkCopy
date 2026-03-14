@@ -346,6 +346,37 @@ input[type="number"] {
     background: #ffffff;
 }
 
+select.setting-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+    background: #ffffff;
+    color: var(--text);
+    cursor: pointer;
+    min-width: 140px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+select.setting-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.custom-msg-group {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.custom-msg-group.show {
+    display: flex;
+}
+
 input:focus {
     outline: none;
     border-color: var(--primary);

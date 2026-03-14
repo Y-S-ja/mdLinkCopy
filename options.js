@@ -12,9 +12,14 @@ const settingIds = [
     'use-readable-fragment', 
     'bracket-to-zenkaku', 
     'pipe-to-zenkaku',
+    'toast-msg-success-type',
     'toast-msg-success',
+    'toast-msg-failed-type',
     'toast-msg-failed'
 ];
+
+// Constants and fallback definitions
+const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
 // Mapping of text setting IDs to their default translated fallback strings
 const defaultTextSettings = {
@@ -25,28 +30,46 @@ const defaultTextSettings = {
 // Load settings from chrome.storage.sync
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
+        // Initialize default UI language for missing select type
+        const defaultUiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
+        if (items['toast-msg-success-type'] === undefined) items['toast-msg-success-type'] = defaultUiLang;
+        if (items['toast-msg-failed-type'] === undefined) items['toast-msg-failed-type'] = defaultUiLang;
+
         settingIds.forEach(id => {
             const el = document.getElementById(id);
-            if (el) {
-                if (items[id] !== undefined) {
-                    if (el.type === 'checkbox') {
-                        el.checked = items[id];
-                    } else if (el.type === 'text') {
+            if (!el) return;
+
+            switch (el.type) {
+                case 'checkbox':
+                    if (items[id] !== undefined) el.checked = items[id];
+                    break;
+                case 'text':
+                    if (items[id] !== undefined) {
                         let textVal = items[id];
                         if (textVal.trim() === '' && defaultTextSettings[id]) {
                             textVal = defaultTextSettings[id]();
                         }
                         el.value = textVal;
-                    } else {
-                        el.value = items[id];
+                    } else if (defaultTextSettings[id]) {
+                        // Inject default strings if not stored yet
+                        el.value = defaultTextSettings[id]();
                     }
-                } else if (el.type === 'text' && defaultTextSettings[id]) {
-                    // Inject default strings if not stored yet
-                    el.value = defaultTextSettings[id]();
-                }
+                    break;
+                case 'select-one': // Dropdown <select>
+                    if (items[id] !== undefined) {
+                        el.value = items[id];
+                    } else {
+                        el.value = id.includes('success') ? items['toast-msg-success-type'] : items['toast-msg-failed-type'];
+                    }
+                    break;
+                case 'number':
+                default:
+                    if (items[id] !== undefined) el.value = items[id];
+                    break;
             }
         });
         enforceBaseLenLimit(); // Apply limits based on loaded values
+        enforceCustomInputVisibility(); // Show or hide textboxes
         updatePreview(); // Initialize preview after loading settings
     });
 }
@@ -70,42 +93,66 @@ function enforceBaseLenLimit() {
     }
 }
 
+// Show/hide the custom text input fields based on dropdown selection
+function enforceCustomInputVisibility() {
+    ['success', 'failed'].forEach(type => {
+        const selectEl = document.getElementById(`toast-msg-${type}-type`);
+        const groupEl = document.getElementById(`group-toast-msg-${type}`);
+        if (selectEl && groupEl) {
+            if (selectEl.value === 'custom') {
+                groupEl.classList.add('show');
+            } else {
+                groupEl.classList.remove('show');
+            }
+        }
+    });
+}
+
 // Save a specific setting to chrome.storage.sync
 function saveSetting(id) {
     const el = document.getElementById(id);
+    if (!el) return;
     let value;
 
-    if (el.type === 'checkbox') {
-        value = el.checked;
-    } else if (el.type === 'text') {
-        value = el.value.trim();
-        if (value === '' && defaultTextSettings[id]) {
-            value = defaultTextSettings[id]();
+    switch (el.type) {
+        case 'checkbox':
+            value = el.checked;
+            break;
+        case 'select-one':
+            value = el.value;
+            break;
+        case 'text':
+            value = el.value.trim();
+            if (value === '' && defaultTextSettings[id]) {
+                value = defaultTextSettings[id]();
+                el.value = value;
+            }
+            break;
+        case 'number':
+        default:
+            value = parseInt(el.value, 10);
+            if (isNaN(value)) return;
+
+            // Clamp the value to min/max if the attributes exist
+            if (el.hasAttribute('min')) {
+                const minVal = parseInt(el.getAttribute('min'), 10);
+                if (!isNaN(minVal) && value < minVal) {
+                    value = minVal;
+                }
+            }
+            if (el.hasAttribute('max')) {
+                const maxVal = parseInt(el.getAttribute('max'), 10);
+                if (!isNaN(maxVal) && value > maxVal) {
+                    value = maxVal;
+                }
+            }
+
+            // Fallback for non-negative values if no min is specified
+            if (value < 0) value = 0;
+
+            // Update the UI input field to visually reflect the clamped value
             el.value = value;
-        }
-    } else {
-        value = parseInt(el.value, 10);
-        if (isNaN(value)) return;
-
-        // Clamp the value to min/max if the attributes exist
-        if (el.hasAttribute('min')) {
-            const minVal = parseInt(el.getAttribute('min'), 10);
-            if (!isNaN(minVal) && value < minVal) {
-                value = minVal;
-            }
-        }
-        if (el.hasAttribute('max')) {
-            const maxVal = parseInt(el.getAttribute('max'), 10);
-            if (!isNaN(maxVal) && value > maxVal) {
-                value = maxVal;
-            }
-        }
-
-        // Fallback for non-negative values if no min is specified
-        if (value < 0) value = 0;
-
-        // Update the UI input field to visually reflect the clamped value
-        el.value = value;
+            break;
     }
 
     chrome.storage.sync.set({ [id]: value }, () => {
@@ -215,6 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('change', () => {
                 if (id === 'threshold' || id === 'base-len') {
                     enforceBaseLenLimit();
+                }
+                if (id === 'toast-msg-success-type' || id === 'toast-msg-failed-type') {
+                    enforceCustomInputVisibility();
                 }
                 saveSetting(id);
                 updatePreview();
