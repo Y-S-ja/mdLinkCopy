@@ -18,13 +18,25 @@ const settingIds = [
     'toast-msg-failed'
 ];
 
-// Constants and fallback definitions
+// Global fallback language obtained directly from manifest file
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
+
+// Locale-specific static messages used for defaults and previews
+const OVERRIDE_MESSAGES = {
+    ja: {
+        success: "Markdownをコピーしました！",
+        failed: "コピーに失敗しました"
+    },
+    en: {
+        success: "Markdown Copied!",
+        failed: "Copy Failed"
+    }
+};
 
 // Mapping of text setting IDs to their default translated fallback strings
 const defaultTextSettings = {
-    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!",
-    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed"
+    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success,
+    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed
 };
 
 // Load settings from chrome.storage.sync
@@ -93,16 +105,28 @@ function enforceBaseLenLimit() {
     }
 }
 
-// Show/hide the custom text input fields based on dropdown selection
+// Show/hide the custom text input fields or toggle disabled state based on dropdown selection
 function enforceCustomInputVisibility() {
     ['success', 'failed'].forEach(type => {
         const selectEl = document.getElementById(`toast-msg-${type}-type`);
-        const groupEl = document.getElementById(`group-toast-msg-${type}`);
-        if (selectEl && groupEl) {
-            if (selectEl.value === 'custom') {
-                groupEl.classList.add('show');
+        const inputEl = document.getElementById(`toast-msg-${type}`);
+        
+        if (selectEl && inputEl) {
+            const val = selectEl.value;
+            if (val === 'custom') {
+                inputEl.disabled = false;
+                // Restore custom value from storage if available
+                chrome.storage.sync.get(`toast-msg-${type}`, (res) => {
+                    if (res[`toast-msg-${type}`]) {
+                        inputEl.value = res[`toast-msg-${type}`];
+                    }
+                });
             } else {
-                groupEl.classList.remove('show');
+                inputEl.disabled = true;
+                // Show the preset message in the disabled box using the centralized dictionary
+                if (OVERRIDE_MESSAGES[val]) {
+                    inputEl.value = type === 'success' ? OVERRIDE_MESSAGES[val].success : OVERRIDE_MESSAGES[val].failed;
+                }
             }
         }
     });
@@ -271,6 +295,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (id === 'toast-msg-success-type' || id === 'toast-msg-failed-type') {
                     enforceCustomInputVisibility();
                 }
+                
+                // Do not save the text input value if it is currently disabled (showing a preset)
+                if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) {
+                    return;
+                }
+
                 saveSetting(id);
                 updatePreview();
             });

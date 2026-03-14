@@ -365,7 +365,7 @@ select.setting-select:focus {
 }
 
 .custom-msg-group {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
@@ -373,8 +373,9 @@ select.setting-select:focus {
     width: 100%;
 }
 
-.custom-msg-group.show {
-    display: flex;
+.settings-column input[type="text"]:disabled {
+    background-color: #f1f5f9;
+    color: var(--text-light);
 }
 
 input:focus {
