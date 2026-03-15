@@ -42,6 +42,27 @@ const defaultTextSettings = {
 };
 
 /**
+ * Gets the appropriately typed value from a DOM element.
+ */
+function getElementValue(el) {
+    if (el.type === 'checkbox') return el.checked;
+    if (el.type === 'number') return parseInt(el.value, 10) || 0;
+    if (typeof el.value === 'string') return el.value.trim();
+    return el.value;
+}
+
+/**
+ * Sets the value of a DOM element based on its type.
+ */
+function setElementValue(el, value) {
+    if (el.type === 'checkbox') {
+        el.checked = !!value;
+    } else {
+        el.value = value ?? '';
+    }
+}
+
+/**
  * Loads current settings from chrome.storage.sync and populates the UI.
  */
 function restoreOptions() {
@@ -54,34 +75,22 @@ function restoreOptions() {
             const el = document.getElementById(id);
             if (!el) return;
 
-            switch (el.type) {
-                case 'checkbox':
-                    if (items[id] !== undefined) el.checked = items[id];
-                    break;
-                case 'text':
-                    if (items[id] !== undefined) {
-                        let textVal = items[id];
-                        if (textVal.trim() === '' && defaultTextSettings[id]) {
-                            textVal = defaultTextSettings[id]();
-                        }
-                        el.value = textVal;
-                    } else if (defaultTextSettings[id]) {
-                        el.value = defaultTextSettings[id]();
-                    }
-                    break;
-                case 'select-one':
-                    if (items[id] !== undefined) {
-                        el.value = items[id];
-                    } else {
-                        el.value = id.includes('success') ? items['toast-msg-success-type'] : items['toast-msg-failed-type'];
-                    }
-                    break;
-                case 'number':
-                default:
-                    if (items[id] !== undefined) el.value = items[id];
-                    break;
+            let val = items[id];
+
+            // Fallback logic for specialized select mapping
+            if (val === undefined && el.type === 'select-one') {
+                val = id.includes('success') ? items['toast-msg-success-type'] : items['toast-msg-failed-type'];
             }
-            // Track the initial value for number inputs to optimize save operations
+
+            // Fallback for text elements
+            if (el.type === 'text') {
+                if (val === undefined || (typeof val === 'string' && val.trim() === '')) {
+                    if (defaultTextSettings[id]) val = defaultTextSettings[id]();
+                }
+            }
+
+            if (val !== undefined) setElementValue(el, val);
+
             if (el.type === 'number') {
                 el.dataset.lastSaved = el.value;
             }
@@ -149,40 +158,25 @@ function enforceCustomInputVisibility() {
 function saveSetting(id) {
     const el = document.getElementById(id);
     if (!el) return;
-    let value;
+    let value = getElementValue(el);
 
     switch (el.type) {
-        case 'checkbox':
-            value = el.checked;
-            break;
-        case 'select-one':
-            value = el.value;
-            break;
         case 'text':
-            value = el.value.trim();
             if (value === '' && defaultTextSettings[id]) {
                 value = defaultTextSettings[id]();
                 el.value = value;
             }
             break;
         case 'number':
-        default:
-            value = parseInt(el.value, 10);
             if (isNaN(value)) return;
-
             if (el.hasAttribute('min')) {
                 const minVal = parseInt(el.getAttribute('min'), 10);
-                if (!isNaN(minVal) && value < minVal) {
-                    value = minVal;
-                }
+                if (!isNaN(minVal) && value < minVal) value = minVal;
             }
             if (el.hasAttribute('max')) {
                 const maxVal = parseInt(el.getAttribute('max'), 10);
-                if (!isNaN(maxVal) && value > maxVal) {
-                    value = maxVal;
-                }
+                if (!isNaN(maxVal) && value > maxVal) value = maxVal;
             }
-
             if (value < 0) value = 0;
             el.value = value;
             break;
@@ -209,7 +203,7 @@ function saveSetting(id) {
                 status.classList.remove('show');
             }, 1500);
         }
-        
+
         if (el && el.type === 'number') {
             el.dataset.lastSaved = el.value;
         }
@@ -223,21 +217,7 @@ function updatePreview() {
     const currentSettings = {};
     settingIds.forEach(id => {
         const el = document.getElementById(id);
-        if (!el) return;
-
-        switch (el.type) {
-            case 'checkbox':
-                currentSettings[id] = el.checked;
-                break;
-            case 'select-one':
-                currentSettings[id] = el.value;
-                break;
-            case 'number':
-                currentSettings[id] = parseInt(el.value, 10) || 0;
-                break;
-            default:
-                currentSettings[id] = el.value;
-        }
+        if (el) currentSettings[id] = getElementValue(el);
     });
 
     const data = {
@@ -295,79 +275,41 @@ function togglePreviewPanel(show, animate = true) {
 }
 
 /**
- * Entry point for the options page. 
- * Initializes translations, restores settings, and binds event listeners.
+ * Binds event listeners to UI elements for real-time updates and persistence.
  */
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const message = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
-        if (message) {
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                el.value = message;
-            } else {
-                el.textContent = message;
-            }
-        }
-    });
-
-    document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const message = chrome.i18n.getMessage(el.getAttribute('data-i18n-title'));
-        if (message) {
-            el.title = message;
-        }
-    });
-
-    restoreOptions();
-
-    chrome.storage.local.get('preview-visible', (res) => {
-        const isVisible = res['preview-visible'] !== false;
-        togglePreviewPanel(isVisible, false);
-    });
-
+function setupEventListeners() {
     settingIds.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
 
         const performSave = () => {
             if (el.type === 'number' && el.value === el.dataset.lastSaved) return;
+            if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
+            if (id.includes('-type')) enforceCustomInputVisibility();
 
-            if (id === 'threshold' || id === 'base-len') {
-                enforceBaseLenLimit();
-            }
-            if (id === 'toast-msg-success-type' || id === 'toast-msg-failed-type') {
-                enforceCustomInputVisibility();
-            }
-
-            if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) {
-                return;
-            }
+            if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) return;
 
             saveSetting(id);
             updatePreview();
         };
 
-        if (el.tagName === 'INPUT' && el.type === 'number') {
-            // Live preview updates without storage persistence for performance
+        if (el.type === 'number') {
             el.addEventListener('change', () => {
                 if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
                 updatePreview();
             });
-
-            // Persist numeric settings only on explicit confirmation or focus loss
-            el.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') performSave();
-            });
-
+            el.addEventListener('keydown', (e) => { if (e.key === 'Enter') performSave(); });
             el.addEventListener('blur', performSave);
         } else {
             el.addEventListener('change', performSave);
         }
     });
 
-    const demoTitle = document.getElementById('demo-title');
-    const demoSelection = document.getElementById('demo-selection');
-    if (demoTitle) demoTitle.addEventListener('input', updatePreview);
-    if (demoSelection) demoSelection.addEventListener('input', updatePreview);
+    // Preview specific inputs
+    ['demo-title', 'demo-selection'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updatePreview);
+    });
 
     const toggleBtn = document.getElementById('toggle-preview');
     if (toggleBtn) {
@@ -376,4 +318,34 @@ document.addEventListener('DOMContentLoaded', () => {
             togglePreviewPanel(isHidden);
         });
     }
+}
+
+/**
+ * Entry point for the options page. 
+ * Initializes translations, restores settings, and binds event listeners.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
+        if (msg) {
+            if (['INPUT', 'TEXTAREA'].includes(el.tagName)) {
+                el.value = msg;
+            } else {
+                el.textContent = msg;
+            }
+        }
+    });
+
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n-title'));
+        if (msg) el.title = msg;
+    });
+
+    restoreOptions();
+
+    chrome.storage.local.get('preview-visible', (res) => {
+        togglePreviewPanel(res['preview-visible'] !== false, false);
+    });
+
+    setupEventListeners();
 });
