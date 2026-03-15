@@ -79,6 +79,10 @@ function restoreOptions() {
                     if (items[id] !== undefined) el.value = items[id];
                     break;
             }
+            // Store the initial value for number inputs to track manual Enter/Blur saves
+            if (el.type === 'number') {
+                el.dataset.lastSaved = el.value;
+            }
         });
         enforceBaseLenLimit(); // Apply limits based on loaded values
         enforceCustomInputVisibility(); // Show or hide textboxes
@@ -202,6 +206,12 @@ function saveSetting(id) {
                 status.classList.remove('show');
             }, 1500);
         }
+        
+        // Update the last saved state for number inputs
+        const el = document.getElementById(id);
+        if (el && el.type === 'number') {
+            el.dataset.lastSaved = el.value;
+        }
     });
 }
 
@@ -318,6 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Function to perform the actual save and related UI updates
         const performSave = () => {
+            // For number inputs, only save if the value has actually changed
+            if (el.type === 'number' && el.value === el.dataset.lastSaved) return;
+
             if (id === 'threshold' || id === 'base-len') {
                 enforceBaseLenLimit();
             }
