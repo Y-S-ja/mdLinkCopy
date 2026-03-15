@@ -50,19 +50,6 @@ body {
     animation: fadeIn 0.5s ease-out;
 }
 
-.content-wrapper {
-    display: flex;
-    gap: 32px;
-    align-items: flex-start;
-    justify-content: center;
-}
-
-.settings-column {
-    width: 100%;
-    max-width: 600px;
-    min-width: 0;
-}
-
 header {
     margin-bottom: 32px;
     text-align: center;
@@ -95,6 +82,64 @@ header {
 .subtitle {
     color: var(--text-light);
     font-size: 0.95rem;
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.settings-column {
+    width: 100%;
+    max-width: 600px;
+    min-width: 0;
+}
+
+/* --- Card & Setting Items --- */
+.card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 8px 0;
+}
+
+.setting-item+.setting-item {
+    border-top: 1px solid #f1f5f9;
+}
+
+.info {
+    flex: 1;
+}
+
+.setting-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.desc {
+    font-size: 0.85rem;
+    color: var(--text-light);
 }
 
 /* --- Preview Panel --- */
@@ -197,51 +242,6 @@ header {
     font-size: 0.7rem;
     color: var(--text-light);
     text-align: center;
-}
-
-/* --- Card & Setting Items --- */
-.card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border);
-}
-
-.card h2 {
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    padding: 8px 0;
-}
-
-.setting-item+.setting-item {
-    border-top: 1px solid #f1f5f9;
-}
-
-.info {
-    flex: 1;
-}
-
-.setting-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.desc {
-    font-size: 0.85rem;
-    color: var(--text-light);
 }
 
 /* --- Unified Form Elements --- */
