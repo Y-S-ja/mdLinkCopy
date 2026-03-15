@@ -35,7 +35,7 @@
             "32": "images/icon32x32.png",
             "48": "images/icon48x48.png"
         },
-        "default_title": "Quick Md Copy"
+        "default_title": "__MSG_extName__"
     },
     "commands": {
         "copy-page-md": {
