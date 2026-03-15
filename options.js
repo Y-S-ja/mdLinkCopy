@@ -110,7 +110,7 @@ function enforceCustomInputVisibility() {
     ['success', 'failed'].forEach(type => {
         const selectEl = document.getElementById(`toast-msg-${type}-type`);
         const inputEl = document.getElementById(`toast-msg-${type}`);
-        
+
         if (selectEl && inputEl) {
             const val = selectEl.value;
             if (val === 'custom') {
@@ -193,36 +193,55 @@ function saveSetting(id) {
             default:
                 statusId = `status-${id}`;
         }
-        
+
         const status = document.getElementById(statusId);
         if (status) {
             status.classList.add('show');
-            setTimeout(() => {
+            clearTimeout(status.timeoutId);
+            status.timeoutId = setTimeout(() => {
                 status.classList.remove('show');
             }, 1500);
         }
     });
 }
 
-// Request the background script to generate a live preview
+// Request the background script to generate a live preview using current UI values
 function updatePreview() {
-    chrome.storage.sync.get(settingIds, (settings) => {
-        const data = {
-            demoTitle: document.getElementById('demo-title').value,
-            demoSelection: document.getElementById('demo-selection').value,
-            demoUrl: 'https://ja.wikipedia.org/wiki/%E3%83%89%E3%83%A9%E3%81%88%E3%82%82%E3%82%93',
-            settings: settings
-        };
+    const currentSettings = {};
+    settingIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
 
-        chrome.runtime.sendMessage({
-            action: 'get-preview',
-            data: data
-        }, (response) => {
-            if (response && response.markdownLink) {
-                const output = document.getElementById('preview-output');
-                if (output) output.textContent = response.markdownLink;
-            }
-        });
+        switch (el.type) {
+            case 'checkbox':
+                currentSettings[id] = el.checked;
+                break;
+            case 'select-one':
+                currentSettings[id] = el.value;
+                break;
+            case 'number':
+                currentSettings[id] = parseInt(el.value, 10) || 0;
+                break;
+            default:
+                currentSettings[id] = el.value;
+        }
+    });
+
+    const data = {
+        demoTitle: document.getElementById('demo-title').value,
+        demoSelection: document.getElementById('demo-selection').value,
+        demoUrl: 'https://ja.wikipedia.org/wiki/%E3%83%89%E3%83%A9%E3%81%88%E3%82%82%E3%82%93',
+        settings: currentSettings
+    };
+
+    chrome.runtime.sendMessage({
+        action: 'get-preview',
+        data: data
+    }, (response) => {
+        if (response && response.markdownLink) {
+            const output = document.getElementById('preview-output');
+            if (output) output.textContent = response.markdownLink;
+        }
     });
 }
 
@@ -295,23 +314,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // Register change listeners for all settings
     settingIds.forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('change', () => {
-                if (id === 'threshold' || id === 'base-len') {
-                    enforceBaseLenLimit();
-                }
-                if (id === 'toast-msg-success-type' || id === 'toast-msg-failed-type') {
-                    enforceCustomInputVisibility();
-                }
-                
-                // Do not save the text input value if it is currently disabled (showing a preset)
-                if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) {
-                    return;
-                }
+        if (!el) return;
 
-                saveSetting(id);
+        // Function to perform the actual save and related UI updates
+        const performSave = () => {
+            if (id === 'threshold' || id === 'base-len') {
+                enforceBaseLenLimit();
+            }
+            if (id === 'toast-msg-success-type' || id === 'toast-msg-failed-type') {
+                enforceCustomInputVisibility();
+            }
+
+            // Do not save the text input value if it is currently disabled (showing a preset)
+            if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) {
+                return;
+            }
+
+            saveSetting(id);
+            updatePreview();
+        };
+
+        if (el.tagName === 'INPUT' && el.type === 'number') {
+            // Updated behavior: Arrow keys/buttons update the UI but don't save to storage
+            el.addEventListener('change', () => {
+                if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
                 updatePreview();
             });
+
+            // Persist to storage only on Enter key or when focus is lost
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') performSave();
+            });
+
+            el.addEventListener('blur', performSave);
+        } else {
+            // For other types (checkbox, select, text), save immediately on change
+            el.addEventListener('change', performSave);
         }
     });
 
