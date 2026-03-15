@@ -21,8 +21,8 @@
     "icons": {
         "16": "images/icon16x16.png",
         "32": "images/icon32x32.png",
-        "48": "images/icon192x192.png",
-        "128": "images/icon192x192.png",
+        "48": "images/icon48x48.png",
+        "128": "images/icon128x128.png",
         "192": "images/icon192x192.png"
     },
     "background": {
@@ -33,7 +33,7 @@
             "16": "images/icon16x16.png",
             "24": "images/icon32x32.png",
             "32": "images/icon32x32.png",
-            "48": "images/icon192x192.png"
+            "48": "images/icon48x48.png"
         },
         "default_title": "Quick Md Copy"
     },
