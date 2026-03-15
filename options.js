@@ -33,16 +33,19 @@ const OVERRIDE_MESSAGES = {
     }
 };
 
-// Mapping of text setting IDs to their default translated fallback strings
+/**
+ * Mapping of text setting IDs to their default translated fallback strings.
+ */
 const defaultTextSettings = {
     'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success,
     'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed
 };
 
-// Load settings from chrome.storage.sync
+/**
+ * Loads current settings from chrome.storage.sync and populates the UI.
+ */
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
-        // Initialize default UI language for missing select type
         const defaultUiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
         if (items['toast-msg-success-type'] === undefined) items['toast-msg-success-type'] = defaultUiLang;
         if (items['toast-msg-failed-type'] === undefined) items['toast-msg-failed-type'] = defaultUiLang;
@@ -63,11 +66,10 @@ function restoreOptions() {
                         }
                         el.value = textVal;
                     } else if (defaultTextSettings[id]) {
-                        // Inject default strings if not stored yet
                         el.value = defaultTextSettings[id]();
                     }
                     break;
-                case 'select-one': // Dropdown <select>
+                case 'select-one':
                     if (items[id] !== undefined) {
                         el.value = items[id];
                     } else {
@@ -79,18 +81,21 @@ function restoreOptions() {
                     if (items[id] !== undefined) el.value = items[id];
                     break;
             }
-            // Store the initial value for number inputs to track manual Enter/Blur saves
+            // Track the initial value for number inputs to optimize save operations
             if (el.type === 'number') {
                 el.dataset.lastSaved = el.value;
             }
         });
-        enforceBaseLenLimit(); // Apply limits based on loaded values
-        enforceCustomInputVisibility(); // Show or hide textboxes
-        updatePreview(); // Initialize preview after loading settings
+        enforceBaseLenLimit();
+        enforceCustomInputVisibility();
+        updatePreview();
     });
 }
 
-// Adjust the maximum attribute for base-len dynamically and clamp it if necessary
+/**
+ * Validates 'base-len' against the current 'threshold' to prevent invalid fragments.
+ * Clamps 'base-len' to half of the 'threshold'.
+ */
 function enforceBaseLenLimit() {
     const thresholdEl = document.getElementById('threshold');
     const baseLenEl = document.getElementById('base-len');
@@ -100,16 +105,19 @@ function enforceBaseLenLimit() {
     if (isNaN(thresholdVal)) return;
 
     const maxBaseLen = Math.floor(thresholdVal / 2);
-    baseLenEl.max = maxBaseLen; // Update UI max attribute
+    baseLenEl.max = maxBaseLen;
 
     const currentBaseLen = parseInt(baseLenEl.value, 10);
     if (!isNaN(currentBaseLen) && currentBaseLen > maxBaseLen) {
         baseLenEl.value = maxBaseLen;
-        chrome.storage.sync.set({ 'base-len': maxBaseLen }); // Persist clamped value
+        chrome.storage.sync.set({ 'base-len': maxBaseLen });
     }
 }
 
-// Show/hide the custom text input fields or toggle disabled state based on dropdown selection
+/**
+ * Handles the visibility and interactivity of custom message input fields based 
+ * on the selected preview language/type.
+ */
 function enforceCustomInputVisibility() {
     ['success', 'failed'].forEach(type => {
         const selectEl = document.getElementById(`toast-msg-${type}-type`);
@@ -119,7 +127,6 @@ function enforceCustomInputVisibility() {
             const val = selectEl.value;
             if (val === 'custom') {
                 inputEl.disabled = false;
-                // Restore custom value from storage if available
                 chrome.storage.sync.get(`toast-msg-${type}`, (res) => {
                     if (res[`toast-msg-${type}`]) {
                         inputEl.value = res[`toast-msg-${type}`];
@@ -127,7 +134,6 @@ function enforceCustomInputVisibility() {
                 });
             } else {
                 inputEl.disabled = true;
-                // Show the preset message in the disabled box using the centralized dictionary
                 if (OVERRIDE_MESSAGES[val]) {
                     inputEl.value = type === 'success' ? OVERRIDE_MESSAGES[val].success : OVERRIDE_MESSAGES[val].failed;
                 }
@@ -136,7 +142,10 @@ function enforceCustomInputVisibility() {
     });
 }
 
-// Save a specific setting to chrome.storage.sync
+/**
+ * Persists a single setting to chrome.storage.sync with validation.
+ * @param {string} id - The DOM ID of the setting element.
+ */
 function saveSetting(id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -161,7 +170,6 @@ function saveSetting(id) {
             value = parseInt(el.value, 10);
             if (isNaN(value)) return;
 
-            // Clamp the value to min/max if the attributes exist
             if (el.hasAttribute('min')) {
                 const minVal = parseInt(el.getAttribute('min'), 10);
                 if (!isNaN(minVal) && value < minVal) {
@@ -175,17 +183,12 @@ function saveSetting(id) {
                 }
             }
 
-            // Fallback for non-negative values if no min is specified
             if (value < 0) value = 0;
-
-            // Update the UI input field to visually reflect the clamped value
             el.value = value;
             break;
     }
 
     chrome.storage.sync.set({ [id]: value }, () => {
-        // Show "Saved" status message temporarily
-        // For toast-msg-type settings, use the base setting status ID
         let statusId;
         switch (id) {
             case 'toast-msg-success-type':
@@ -207,15 +210,15 @@ function saveSetting(id) {
             }, 1500);
         }
         
-        // Update the last saved state for number inputs
-        const el = document.getElementById(id);
         if (el && el.type === 'number') {
             el.dataset.lastSaved = el.value;
         }
     });
 }
 
-// Request the background script to generate a live preview using current UI values
+/**
+ * Updates the preview panel by sending current UI states to the background script.
+ */
 function updatePreview() {
     const currentSettings = {};
     settingIds.forEach(id => {
@@ -291,9 +294,11 @@ function togglePreviewPanel(show, animate = true) {
     chrome.storage.local.set({ 'preview-visible': show });
 }
 
-// Initialize individual setting listeners and handle page load
+/**
+ * Entry point for the options page. 
+ * Initializes translations, restores settings, and binds event listeners.
+ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Apply i18n translations to elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const message = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
         if (message) {
@@ -305,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Apply i18n translations to tooltips (title attribute)
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
         const message = chrome.i18n.getMessage(el.getAttribute('data-i18n-title'));
         if (message) {
@@ -315,20 +319,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     restoreOptions();
 
-    // Restore preview panel visibility
     chrome.storage.local.get('preview-visible', (res) => {
         const isVisible = res['preview-visible'] !== false;
         togglePreviewPanel(isVisible, false);
     });
 
-    // Register change listeners for all settings
     settingIds.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
 
-        // Function to perform the actual save and related UI updates
         const performSave = () => {
-            // For number inputs, only save if the value has actually changed
             if (el.type === 'number' && el.value === el.dataset.lastSaved) return;
 
             if (id === 'threshold' || id === 'base-len') {
@@ -338,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 enforceCustomInputVisibility();
             }
 
-            // Do not save the text input value if it is currently disabled (showing a preset)
             if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) {
                 return;
             }
@@ -348,31 +347,28 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (el.tagName === 'INPUT' && el.type === 'number') {
-            // Updated behavior: Arrow keys/buttons update the UI but don't save to storage
+            // Live preview updates without storage persistence for performance
             el.addEventListener('change', () => {
                 if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
                 updatePreview();
             });
 
-            // Persist to storage only on Enter key or when focus is lost
+            // Persist numeric settings only on explicit confirmation or focus loss
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') performSave();
             });
 
             el.addEventListener('blur', performSave);
         } else {
-            // For other types (checkbox, select, text), save immediately on change
             el.addEventListener('change', performSave);
         }
     });
 
-    // Listeners for demo inputs
     const demoTitle = document.getElementById('demo-title');
     const demoSelection = document.getElementById('demo-selection');
     if (demoTitle) demoTitle.addEventListener('input', updatePreview);
     if (demoSelection) demoSelection.addEventListener('input', updatePreview);
 
-    // Floating toggle button
     const toggleBtn = document.getElementById('toggle-preview');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {

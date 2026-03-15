@@ -34,16 +34,13 @@ const OVERRIDE_MESSAGES = {
     }
 };
 
-// Initialize extension settings and context menus on installation
 chrome.runtime.onInstalled.addListener(async () => {
-    // Create context menu for text selection
     chrome.contextMenus.create({
         id: "copy-selection-markdown",
         title: chrome.i18n.getMessage("contextMenuTitle") || "Copy Markdown link for selection",
         contexts: ["selection"]
     });
 
-    // Populate default settings if not already present
     const currentSettings = await chrome.storage.sync.get(Object.keys(INITIAL_SETTINGS));
     const newSettings = {};
     let needsUpdate = false;
@@ -88,7 +85,9 @@ async function getSettings(keys = null) {
     return normalizeSettings(items);
 }
 
-// Message listener for live preview on options page
+/**
+ * Listen for preview generation requests from the options page.
+ */
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === 'get-preview') {
         try {
@@ -111,19 +110,19 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
 
             sendResponse({ markdownLink });
         } catch (err) {
-            console.error('Preview generation failed:', err);
             sendResponse({ markdownLink: (chrome.i18n.getMessage("errPreviewGeneration") || "Error: ") + err.message });
         }
         return true;
     }
 });
 
-// Handle context menu clicks
+/**
+ * Handle context menu clicks to initiate selection-based copy.
+ */
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
         let expandedText = info.selectionText;
         try {
-            // Expand selection to word boundaries by executing a script in the tab
             const result = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 func: getExpandedSelectionTextInPage
@@ -132,13 +131,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
                 expandedText = result[0].result;
             }
         } catch (err) {
-            console.warn('Failed to expand selection on page, using raw selection:', err);
+            // Fallback to raw selection if script injection is blocked (e.g., on restricted pages)
         }
         performSelectionCopy(expandedText, info.pageUrl, tab);
     }
 });
 
-// Handle keyboard shortcuts defined in manifest
+/**
+ * Handle global keyboard shortcuts for page and selection copy.
+ */
 chrome.commands.onCommand.addListener(async (command, tab) => {
     switch (command) {
         case "copy-page-md":
@@ -163,7 +164,6 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
                     showSystemNotification(chrome.i18n.getMessage("errNoTextSelected"));
                 }
             } catch (err) {
-                console.error('Shortcut capture failed:', err);
                 showSystemNotification(chrome.i18n.getMessage("errScriptBlocked"));
             }
             break;
@@ -218,13 +218,20 @@ function getExpandedSelectionTextInPage() {
     }
 }
 
-// Check if the current page is restricted (e.g. Chrome settings, Web Store)
+/**
+ * Checks if a URL is a restricted browser internal page where script injection is prohibited.
+ * @param {string} url
+ * @returns {boolean}
+ */
 function isRestrictedPage(url) {
     const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
     return !url || restrictedPrefixes.some(prefix => url.startsWith(prefix));
 }
 
-// Show a system notification when page script injection is restricted
+/**
+ * Shows a system notification as a fallback when UI toast injection is not possible.
+ * @param {string} message
+ */
 function showSystemNotification(message) {
     const notifyMsg = message || chrome.i18n.getMessage("notifyRestrictedDefault") || "Restricted page";
     chrome.notifications.create({
@@ -237,19 +244,18 @@ function showSystemNotification(message) {
 }
 
 /**
- * Unified function to handle clipboard writes either via page script injection or offscreen document.
+ * Coordinated clipboard copy flow.
+ * Attempts script injection (to show UI toast) with an offscreen document fallback 
+ * for restricted pages or failure cases.
  */
-// Handle the core logic for copying a Markdown link to the clipboard
 async function dispatchCopy(tabId, url, text) {
     const settings = await getSettings(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
     const duration = settings['notice-duration'];
 
-    // Resolve UI languages using messages.json mapping or fallback to manifest default locale
     const uiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
     const typeSuccess = settings['toast-msg-success-type'] || uiLang;
     const typeFailed = settings['toast-msg-failed-type'] || uiLang;
 
-    // Determine the success message
     let msgSuccess = '';
     if (OVERRIDE_MESSAGES[typeSuccess]) {
         msgSuccess = OVERRIDE_MESSAGES[typeSuccess].success;
@@ -257,7 +263,6 @@ async function dispatchCopy(tabId, url, text) {
         msgSuccess = settings['toast-msg-success'] || (chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success);
     }
 
-    // Determine the failed message
     let msgFailed = '';
     if (OVERRIDE_MESSAGES[typeFailed]) {
         msgFailed = OVERRIDE_MESSAGES[typeFailed].failed;
@@ -266,6 +271,7 @@ async function dispatchCopy(tabId, url, text) {
     }
 
     if (isRestrictedPage(url)) {
+        // Use offscreen fallback for restricted pages (Chrome internal pages, etc.)
         const success = await copyViaOffscreen(text);
         if (success) {
             showSystemNotification(chrome.i18n.getMessage("notifyCopySuccessRestricted"));
@@ -277,8 +283,8 @@ async function dispatchCopy(tabId, url, text) {
             target: { tabId: tabId },
             func: copyToClipboardWithNotice,
             args: [text, duration, msgSuccess, msgFailed]
-        }).catch(async (err) => {
-            console.warn('Script injection failed, trying offscreen fallback:', err);
+        }).catch(async () => {
+            // Service worker uses offscreen document when direct clipboard write in tab fails
             const success = await copyViaOffscreen(text);
             if (!success) {
                 showSystemNotification(chrome.i18n.getMessage("notifyCopyFailed"));
@@ -289,7 +295,10 @@ async function dispatchCopy(tabId, url, text) {
     }
 }
 
-// Logic for selection-based Markdown link generation
+/**
+ * Handles link generation For text selection.
+ * Generates an 'Scroll to Text' fragment.
+ */
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
     const settings = await getSettings([
         'threshold', 'base-len', 'use-readable-url', 'use-start-end-format',
@@ -312,7 +321,9 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
     dispatchCopy(tab.id, tab.url, `[${title}](${finalUrl}${fragment})`);
 }
 
-// Logic for page-based Markdown link generation
+/**
+ * Handles basic page-link generation.
+ */
 async function copyPageLink(tab) {
     const settings = await getSettings(['use-readable-url', 'bracket-to-zenkaku', 'pipe-to-zenkaku']);
     const pageUrl = tab.url.split('#')[0];
@@ -326,14 +337,17 @@ chrome.action.onClicked.addListener((tab) => {
     copyPageLink(tab);
 });
 
-// Helper for copying clipboard content when page permissions are limited (e.g. New Tab page)
+/**
+ * Helper for copying content when page permissions are limited (e.g. New Tab page).
+ * Necessary because service workers do not have direct clipboard access.
+ */
 async function copyViaOffscreen(text) {
     try {
         if (!(await chrome.offscreen.hasDocument?.())) {
             await chrome.offscreen.createDocument({
                 url: 'offscreen.html',
                 reasons: ['CLIPBOARD'],
-                justification: 'Copying Markdown links to clipboard'
+                justification: 'Service worker needs offscreen document to access the Clipboard API'
             });
         }
         const response = await chrome.runtime.sendMessage({
@@ -342,7 +356,6 @@ async function copyViaOffscreen(text) {
         });
         return response?.success || false;
     } catch (err) {
-        console.error('copyViaOffscreen failed:', err);
         return false;
     }
 }
@@ -389,7 +402,12 @@ async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) 
     }
 }
 
-// Encode specific characters to keep URLs readable but Markdown-safe
+/**
+ * Encodes specific characters to keep 'Scroll to Text' fragments readable 
+ * while ensuring they are Markdown-safe (escaping parentheses and spaces).
+ * @param {string} text
+ * @returns {string}
+ */
 function safeSelectiveEncode(text) {
     return text
         .replace(/%/g, '%25')
@@ -403,7 +421,9 @@ function safeSelectiveEncode(text) {
         .replace(/\n/g, '%20');
 }
 
-// Sanitize title for use as a Markdown label
+/**
+ * Sanitizes page titles for use as Markdown link labels.
+ */
 function cleanLabel(text, bracketToZenkaku, pipeToZenkaku) {
     if (!text) return "";
     let cleaned = text.replace(/\r?\n/g, ' ');
@@ -515,7 +535,10 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
     return `${encoder(startPart)},${encoder(endPart)}`;
 }
 
-// Decode tab.url while keeping it Markdown-safe
+/**
+ * Decodes URL to make it readable in Markdown, while re-encoding 
+ * characters that break Markdown syntax.
+ */
 function getReadableUrl(rawUrl) {
     try {
         return decodeURI(rawUrl)
