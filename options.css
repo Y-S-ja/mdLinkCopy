@@ -360,11 +360,6 @@ select.setting-select {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-select.setting-select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-}
-
 .custom-msg-group {
     display: flex;
     flex-direction: column;
@@ -379,11 +374,19 @@ select.setting-select:focus {
     color: var(--text-light);
 }
 
+input:not(:disabled):hover,
+select:not(:disabled):hover,
+textarea:not(:disabled):hover {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
 input:focus,
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 /* Toggle Switch UI */
