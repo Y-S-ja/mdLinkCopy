@@ -1,6 +1,6 @@
 {
   "extName": { "message": "Quick Md Copy" },
-  "extDesc": { "message": "アイコンクリックでMarkdownリンクを即座にコピー" },
+  "extDesc": { "message": "表示中のページや選択範囲（ハイライト付き）へのMarkdownリンクを即座にコピーします" },
   "optionsPageTitle": { "message": "Quick Md Copy - 設定" },
   "optionsSubtitle": { "message": "拡張機能の動作をカスタマイズします" },
   "sectLabelFormat": { "message": "📝 ラベルの整形" },

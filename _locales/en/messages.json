@@ -1,6 +1,6 @@
 {
   "extName": { "message": "Quick Md Copy" },
-  "extDesc": { "message": "Instantly copy Markdown links with a single click" },
+  "extDesc": { "message": "Instantly copy Markdown links for pages or text selections (with highlight support)" },
   "optionsPageTitle": { "message": "Quick Md Copy - Settings" },
   "optionsSubtitle": { "message": "Customize the extension's behavior" },
   "sectLabelFormat": { "message": "📝 Label Formatting" },

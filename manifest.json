@@ -1,9 +1,10 @@
 {
     "manifest_version": 3,
     "name": "__MSG_extName__",
-    "version": "1.0",
+    "version": "1.0.0",
     "description": "__MSG_extDesc__",
     "default_locale": "en",
+    "offline_enabled": true,
     "permissions": [
         "activeTab",
         "scripting",
@@ -39,13 +40,15 @@
     "commands": {
         "copy-page-md": {
             "suggested_key": {
-                "default": "Ctrl+M"
+                "default": "Ctrl+M",
+                "mac": "Command+Shift+M"
             },
             "description": "__MSG_cmdCopyPageDesc__"
         },
         "copy-selection-md": {
             "suggested_key": {
-                "default": "Alt+M"
+                "default": "Alt+M",
+                "mac": "Option+M"
             },
             "description": "__MSG_cmdCopySelectionDesc__"
         }
