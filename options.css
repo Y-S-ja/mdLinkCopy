@@ -1,4 +1,5 @@
 :root {
+    /* Colors */
     --primary: #4f46e5;
     --primary-hover: #4338ca;
     --bg: #f8fafc;
@@ -7,6 +8,24 @@
     --text-light: #64748b;
     --border: #e2e8f0;
     --success: #10b981;
+
+    /* Spacing & Sizing */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-blur: blur(12px);
+
+    /* Shadows */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-primary: 0 4px 12px rgba(79, 70, 229, 0.4);
+
+    /* Transitions */
+    --transition-fast: all 0.2s ease;
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -44,30 +63,60 @@ body {
     min-width: 0;
 }
 
-/* --- Preview Panel Styles --- */
+header {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.logo img {
+    width: 48px;
+    height: 48px;
+}
+
+.logo h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.logo h1 span {
+    color: var(--primary);
+    font-weight: 400;
+}
+
+.subtitle {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* --- Preview Panel --- */
 .preview-panel {
     width: 320px;
     flex-shrink: 0;
     position: sticky;
     top: 40px;
     z-index: 10;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-/* Enable transitions only while toggling via JS class */
 .preview-panel.is-animating {
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.4s ease,
-        margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-smooth);
 }
 
 .preview-panel.hidden {
@@ -119,19 +168,8 @@ body {
     letter-spacing: 0.05em;
 }
 
-.demo-group input,
 .demo-group textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.85rem;
-    background: rgba(255, 255, 255, 0.5);
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.demo-group textarea {
-    height: 80px;
+    height: 100px;
     resize: none;
 }
 
@@ -148,7 +186,7 @@ body {
     background: #1e293b;
     color: #e2e8f0;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     font-family: 'Fira Code', 'Courier New', monospace;
     font-size: 0.8rem;
     word-break: break-all;
@@ -158,125 +196,7 @@ body {
 .preview-note {
     font-size: 0.7rem;
     color: var(--text-light);
-    font-style: italic;
     text-align: center;
-}
-
-/* --- Floating Action Button (FAB) --- */
-.fab-button {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--primary);
-    color: white;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-    z-index: 100;
-}
-
-.fab-button:hover {
-    transform: scale(1.1);
-    background: var(--primary-hover);
-}
-
-.fab-button.active {
-    background: #64748b;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.fab-button.hidden {
-    transform: scale(0);
-    opacity: 0;
-    pointer-events: none;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* --- Responsive Layout --- */
-@media (max-width: 1000px) {
-    .content-wrapper {
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .preview-panel {
-        position: static;
-        width: 100%;
-        max-width: 600px;
-        order: -1;
-        max-height: 500px;
-    }
-
-    .preview-panel.is-animating {
-        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            opacity 0.4s ease,
-            margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-            border-width 0.4s ease;
-    }
-
-    .preview-panel.hidden {
-        width: 100%;
-        max-height: 0;
-        opacity: 0;
-        transform: translateY(-20px);
-        margin-left: 0;
-        margin-bottom: -20px;
-        /* Counteract flex gap */
-        border-width: 0;
-        pointer-events: none;
-    }
-}
-
-header {
-    margin-bottom: 32px;
-    text-align: center;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 8px;
-}
-
-.logo img {
-    width: 48px;
-    height: 48px;
-}
-
-.logo h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.025em;
-}
-
-.logo h1 span {
-    color: var(--primary);
-    font-weight: 400;
-}
-
-.subtitle {
-    color: var(--text-light);
-    font-size: 0.95rem;
 }
 
 /* --- Card & Setting Items --- */
@@ -285,7 +205,7 @@ header {
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-sm);
     border: 1px solid var(--border);
 }
 
@@ -324,14 +244,18 @@ header {
     color: var(--text-light);
 }
 
-/* --- Form Elements --- */
+/* --- Unified Form Elements --- */
 input[type="number"],
-.settings-column input[type="text"] {
+input[type="text"],
+select.setting-select,
+textarea {
+    width: 100%;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     font-size: 0.9rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    transition: var(--transition-fast);
 }
 
 input[type="number"] {
@@ -339,25 +263,20 @@ input[type="number"] {
     min-width: 60px;
     max-width: 120px;
     text-align: right;
+    width: auto;
 }
 
 .settings-column input[type="text"] {
     width: 200px;
     text-align: left;
-    background: #ffffff;
 }
 
 select.setting-select {
     padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: 0.9rem;
-    background: #ffffff;
-    color: var(--text);
     cursor: pointer;
     min-width: 140px;
+    width: auto;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .custom-msg-group {
@@ -369,7 +288,9 @@ select.setting-select {
     width: 100%;
 }
 
-.settings-column input[type="text"]:disabled {
+input:disabled,
+select:disabled,
+textarea:disabled {
     background-color: #f1f5f9;
     color: var(--text-light);
 }
@@ -381,8 +302,6 @@ textarea:not(:disabled):hover {
 }
 
 input:focus,
-input[type="number"]:focus,
-input[type="text"]:focus,
 select:focus,
 textarea:focus {
     outline: none;
@@ -467,4 +386,77 @@ input:checked+.slider::before {
 
 .status-message.show {
     opacity: 1;
+}
+
+/* --- Floating Action Button (FAB) --- */
+.fab-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-primary);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    z-index: 100;
+}
+
+.fab-button:hover {
+    transform: scale(1.1);
+    background: var(--primary-hover);
+}
+
+.fab-button.active {
+    background: #64748b;
+    box-shadow: var(--shadow-sm);
+}
+
+.fab-button.hidden {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Responsive Layout --- */
+@media (max-width: 1000px) {
+    .content-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .preview-panel {
+        position: static;
+        width: 100%;
+        max-width: 600px;
+        order: -1;
+        max-height: 500px;
+    }
+
+    .preview-panel.hidden {
+        width: 100%;
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-20px);
+        margin-left: 0;
+        margin-bottom: -20px;
+        border-width: 0;
+    }
 }
