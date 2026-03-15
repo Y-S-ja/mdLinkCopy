@@ -60,17 +60,46 @@ chrome.runtime.onInstalled.addListener(async () => {
     }
 });
 
+/**
+ * Ensures a settings object has all required keys by filling missing values
+ * from INITIAL_SETTINGS.
+ * @param {Object} items - The raw settings items from storage or message.
+ * @returns {Object} A complete settings object.
+ */
+function normalizeSettings(items) {
+    const settings = { ...INITIAL_SETTINGS };
+    if (!items) return settings;
+
+    for (const key in INITIAL_SETTINGS) {
+        if (items[key] !== undefined && items[key] !== null) {
+            settings[key] = items[key];
+        }
+    }
+    return settings;
+}
+
+/**
+ * Fetches settings from chrome.storage.sync and returns a normalized object.
+ * @param {string[]|null} keys - Keys to fetch, or null for all.
+ * @returns {Promise<Object>}
+ */
+async function getSettings(keys = null) {
+    const items = await chrome.storage.sync.get(keys || Object.keys(INITIAL_SETTINGS));
+    return normalizeSettings(items);
+}
+
 // Message listener for live preview on options page
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === 'get-preview') {
         try {
-            const { demoTitle, demoSelection, demoUrl, settings } = message.data;
+            const { demoTitle, demoSelection, demoUrl, settings: rawSettings } = message.data;
+            const settings = normalizeSettings(rawSettings);
 
             const title = cleanLabel(demoTitle, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
             const selectionText = generateTextFragmentParam(
                 demoSelection,
-                settings['threshold'] || 60,
-                settings['base-len'] || 20,
+                settings['threshold'],
+                settings['base-len'],
                 settings['use-start-end-format'],
                 settings['use-readable-fragment']
             );
@@ -212,20 +241,20 @@ function showSystemNotification(message) {
  */
 // Handle the core logic for copying a Markdown link to the clipboard
 async function dispatchCopy(tabId, url, text) {
-    const items = await chrome.storage.sync.get(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
-    const duration = items['notice-duration'] || INITIAL_SETTINGS['notice-duration'];
+    const settings = await getSettings(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
+    const duration = settings['notice-duration'];
 
     // Resolve UI languages using messages.json mapping or fallback to manifest default locale
     const uiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
-    const typeSuccess = items['toast-msg-success-type'] || uiLang;
-    const typeFailed = items['toast-msg-failed-type'] || uiLang;
+    const typeSuccess = settings['toast-msg-success-type'] || uiLang;
+    const typeFailed = settings['toast-msg-failed-type'] || uiLang;
 
     // Determine the success message
     let msgSuccess = '';
     if (OVERRIDE_MESSAGES[typeSuccess]) {
         msgSuccess = OVERRIDE_MESSAGES[typeSuccess].success;
     } else {
-        msgSuccess = items['toast-msg-success'] || (chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success);
+        msgSuccess = settings['toast-msg-success'] || (chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success);
     }
 
     // Determine the failed message
@@ -233,7 +262,7 @@ async function dispatchCopy(tabId, url, text) {
     if (OVERRIDE_MESSAGES[typeFailed]) {
         msgFailed = OVERRIDE_MESSAGES[typeFailed].failed;
     } else {
-        msgFailed = items['toast-msg-failed'] || (chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed);
+        msgFailed = settings['toast-msg-failed'] || (chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed);
     }
 
     if (isRestrictedPage(url)) {
@@ -262,15 +291,15 @@ async function dispatchCopy(tabId, url, text) {
 
 // Logic for selection-based Markdown link generation
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
-    const settings = await chrome.storage.sync.get([
+    const settings = await getSettings([
         'threshold', 'base-len', 'use-readable-url', 'use-start-end-format',
         'use-readable-fragment', 'bracket-to-zenkaku', 'pipe-to-zenkaku'
     ]);
 
     const selectionText = generateTextFragmentParam(
         rawSelection,
-        settings['threshold'] || 60,
-        settings['base-len'] || 20,
+        settings['threshold'],
+        settings['base-len'],
         settings['use-start-end-format'],
         settings['use-readable-fragment']
     );
@@ -285,7 +314,7 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
 
 // Logic for page-based Markdown link generation
 async function copyPageLink(tab) {
-    const settings = await chrome.storage.sync.get(['use-readable-url', 'bracket-to-zenkaku', 'pipe-to-zenkaku']);
+    const settings = await getSettings(['use-readable-url', 'bracket-to-zenkaku', 'pipe-to-zenkaku']);
     const pageUrl = tab.url.split('#')[0];
     const title = cleanLabel(tab.title, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
     const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
