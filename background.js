@@ -97,6 +97,10 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     }
 });
 
+chrome.action.onClicked.addListener((tab) => {
+    copyPageLink(tab);
+});
+
 /**
  * Handle context menu clicks to initiate selection-based copy.
  */
@@ -309,10 +313,6 @@ async function copyPageLink(tab) {
     const markdownLink = createMarkdownLink(tab.title, tab.url, null, settings);
     dispatchCopy(tab.id, tab.url, markdownLink);
 }
-
-chrome.action.onClicked.addListener((tab) => {
-    copyPageLink(tab);
-});
 
 /**
  * Helper for copying content when page permissions are limited (e.g. New Tab page).
