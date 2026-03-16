@@ -106,19 +106,7 @@ chrome.action.onClicked.addListener((tab) => {
  */
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
-        let expandedText = info.selectionText;
-        try {
-            const result = await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: getExpandedSelectionTextInPage
-            });
-            if (result[0].result) {
-                expandedText = result[0].result;
-            }
-        } catch (err) {
-            // Fallback to raw selection if script injection is blocked (e.g., on restricted pages)
-        }
-        performSelectionCopy(expandedText, info.pageUrl, tab);
+        handleSelectionCopyFlow(tab, info.selectionText);
     }
 });
 
@@ -130,29 +118,9 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
         case "copy-page-md":
             copyPageLink(tab);
             break;
-
-        case "copy-selection-md": {
-            if (isRestrictedPage(tab.url)) {
-                showSystemNotification(chrome.i18n.getMessage("errShortcutRestricted"));
-                return;
-            }
-
-            try {
-                const result = await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    func: getExpandedSelectionTextInPage
-                });
-                const selection = result[0].result;
-                if (selection) {
-                    performSelectionCopy(selection, tab.url, tab);
-                } else {
-                    showSystemNotification(chrome.i18n.getMessage("errNoTextSelected"));
-                }
-            } catch (err) {
-                showSystemNotification(chrome.i18n.getMessage("errScriptBlocked"));
-            }
+        case "copy-selection-md":
+            handleSelectionCopyFlow(tab, null);
             break;
-        }
     }
 });
 
@@ -376,6 +344,35 @@ async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) 
             notice.style.transform = "translateX(-50%) translateY(-10px)";
             setTimeout(() => notice.remove(), 400);
         }, displayMs);
+    }
+}
+
+/**
+ * Coordinated selection copy flow from different entry points.
+ * Tries to expand selection via script, but falls back to provided text if injection fails.
+ * @param {chrome.tabs.Tab} tab
+ * @param {string|null} fallbackText
+ */
+async function handleSelectionCopyFlow(tab, fallbackText = null) {
+    let finalSelection = fallbackText;
+
+    try {
+        const result = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: getExpandedSelectionTextInPage
+        });
+        if (result[0]?.result) {
+            finalSelection = result[0].result;
+        }
+    } catch (err) {
+        // Restricted pages or script blocking won't stop the flow if we already have fallbackText
+    }
+
+    if (finalSelection) {
+        performSelectionCopy(finalSelection, tab.url, tab);
+    } else {
+        const msgKey = isRestrictedPage(tab.url) ? "errShortcutRestricted" : "errNoTextSelected";
+        showSystemNotification(chrome.i18n.getMessage(msgKey));
     }
 }
 
