@@ -51,7 +51,7 @@
   "errNoTextSelected": { "message": "No text found. Please select some text and try again." },
   "errScriptBlocked": { "message": "Script execution blocked.\nPlease try copying via the right-click menu." },
   "notifyRestrictedDefault": { "message": "Restricted page (Right-click menu recommended)" },
-  "notifyCopySuccessRestricted": { "message": "Markdown copied (System Notice for restricted page)" },
+  "notifyCopySuccessRestricted": { "message": "Markdown copied (Note: URL cannot be opened directly due to browser security)" },
   "notifyCopyFailedRestricted": { "message": "Copy failed (System Notice for restricted page)" },
   "notifyCopyFailed": { "message": "Copy failed" },
   "notifyCopySuccess": { "message": "Markdown copied (System notice)" },

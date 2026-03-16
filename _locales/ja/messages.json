@@ -51,7 +51,7 @@
   "errNoTextSelected": { "message": "テキストが見つかりません。テキストを選択してから再度お試しください。" },
   "errScriptBlocked": { "message": "スクリプトの実行がブロックされました。\n右クリックメニューでのコピーをお試しください。" },
   "notifyRestrictedDefault": { "message": "機能制限ページです（右クリックメニューを推奨）" },
-  "notifyCopySuccessRestricted": { "message": "Markdownをコピーしました（※制限ページのためシステム通知）" },
+  "notifyCopySuccessRestricted": { "message": "Markdownをコピーしました（※ブラウザ制限により直接開くことはできません）" },
   "notifyCopyFailedRestricted": { "message": "コピーに失敗しました（※制限ページのためシステム通知）" },
   "notifyCopyFailed": { "message": "コピーに失敗しました" },
   "notifyCopySuccess": { "message": "Markdownをコピーしました（※システム通知）" },
