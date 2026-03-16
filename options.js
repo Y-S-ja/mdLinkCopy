@@ -1,6 +1,8 @@
 /**
  * Quick Md Copy - Options Page Logic
- * Manages user settings, live preview updates, and panel visibility.
+ * 
+ * Synchronizes UI elements with chrome.storage.sync and manages live preview 
+ * generation for real-time feedback.
  */
 
 const settingIds = [
@@ -18,11 +20,10 @@ const settingIds = [
     'toast-msg-failed'
 ];
 
-// Global fallback language obtained directly from manifest file
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
 /**
- * Mapping of text setting IDs to their default translated fallback strings.
+ * Default strings used when i18n isn't available or a text field is blank.
  */
 const defaultTextSettings = {
     'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!",
@@ -91,8 +92,7 @@ function restoreOptions() {
 }
 
 /**
- * Validates 'base-len' against the current 'threshold' to prevent invalid fragments.
- * Clamps 'base-len' to half of the 'threshold'.
+ * Ensures 'base-len' is proportional to the 'threshold' to maintain valid fragments.
  */
 function enforceBaseLenLimit() {
     const thresholdEl = document.getElementById('threshold');
@@ -102,6 +102,7 @@ function enforceBaseLenLimit() {
     const thresholdVal = parseInt(thresholdEl.value, 10);
     if (isNaN(thresholdVal)) return;
 
+    // Boundary rule: baseLen * 2 must be <= threshold to avoid overlapping fragments.
     const maxBaseLen = Math.floor(thresholdVal / 2);
     baseLenEl.max = maxBaseLen;
 

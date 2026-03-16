@@ -1,9 +1,11 @@
 /**
  * Quick Md Copy - Background Service Worker
- * This script handles context menu creation, shortcut commands, and link generation logic.
+ * 
+ * Handles core extension lifecycle events, context menus, global shortcuts, 
+ * and complex link generation logic (including Text Fragments and URL sanitization).
  */
 
-// Define initial user settings
+// Initial default settings
 const INITIAL_SETTINGS = {
     'notice-duration': 1000,
     'threshold': 60,
@@ -19,15 +21,17 @@ const INITIAL_SETTINGS = {
     'toast-msg-failed': ''
 };
 
-// Global fallback language obtained directly from manifest file
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
-// Locale-specific static overrides for UI languages (final fallback)
+// Final fallback strings used if i18n resources are missing.
 const OVERRIDE_MESSAGES = {
     success: "Markdown Copied!",
     failed: "Copy Failed"
 };
 
+/**
+ * Extension entry point: Initialize context menus and default settings.
+ */
 chrome.runtime.onInstalled.addListener(async () => {
     chrome.contextMenus.create({
         id: "copy-selection-markdown",
@@ -39,6 +43,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     const newSettings = {};
     let needsUpdate = false;
 
+    // Set defaults for any missing settings
     for (const [key, defaultValue] of Object.entries(INITIAL_SETTINGS)) {
         if (currentSettings[key] === undefined) {
             newSettings[key] = defaultValue;
@@ -52,10 +57,9 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 /**
- * Ensures a settings object has all required keys by filling missing values
- * from INITIAL_SETTINGS.
- * @param {Object} items - The raw settings items from storage or message.
- * @returns {Object} A complete settings object.
+ * Ensures a settings object has all required keys by filling missing values.
+ * @param {Object} items - Raw items from storage.
+ * @returns {Object} Normalized settings.
  */
 function normalizeSettings(items) {
     const settings = { ...INITIAL_SETTINGS };
@@ -70,8 +74,8 @@ function normalizeSettings(items) {
 }
 
 /**
- * Fetches settings from chrome.storage.sync and returns a normalized object.
- * @param {string[]|null} keys - Keys to fetch, or null for all.
+ * Fetches and normalizes settings from sync storage.
+ * @param {string[]|null} keys - Specific keys to fetch.
  * @returns {Promise<Object>}
  */
 async function getSettings(keys = null) {
@@ -80,7 +84,7 @@ async function getSettings(keys = null) {
 }
 
 /**
- * Listen for preview generation requests from the options page.
+ * Listens for preview requests from the options page.
  */
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === 'get-preview') {
@@ -97,12 +101,8 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     }
 });
 
-chrome.action.onClicked.addListener((tab) => {
-    copyPageLink(tab);
-});
-
 /**
- * Handle context menu clicks to initiate selection-based copy.
+ * Listens for context menu clicks.
  */
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
@@ -111,7 +111,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 /**
- * Handle global keyboard shortcuts for page and selection copy.
+ * Listens for action button clicks (page-wide copy).
+ */
+chrome.action.onClicked.addListener((tab) => {
+    copyPageLink(tab);
+});
+
+/**
+ * Handles global keyboard shortcuts for page and selection copy.
  */
 chrome.commands.onCommand.addListener(async (command, tab) => {
     switch (command) {
@@ -219,8 +226,12 @@ function resolveToastMessage(type, customValue, messageKey, statusKey) {
 
 /**
  * Coordinated clipboard copy flow.
- * Attempts script injection (to show UI toast) with an offscreen document fallback 
- * for restricted pages or failure cases.
+ * Attempts script injection to show UI toast first. 
+ * Falls back to system notifications via offscreen document for restricted/failed cases.
+ * 
+ * @param {number} tabId
+ * @param {string} url
+ * @param {string} text - Link content to copy.
  */
 async function dispatchCopy(tabId, url, text) {
     const settings = await getSettings(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
@@ -242,16 +253,15 @@ async function dispatchCopy(tabId, url, text) {
         "failed"
     );
 
-    // Try direct script injection first. This will show a toast notification on standard pages.
+    // Attempt injection. This provides the best UX (in-page toast).
     chrome.scripting.executeScript({
         target: { tabId: tabId },
         func: copyToClipboardWithNotice,
         args: [text, duration, msgSuccess, msgFailed]
     }).catch(async () => {
-        // Fallback to offscreen document when script injection is blocked (restricted pages or dead tabs)
+        // Fallback: offscreen document handles clipboard access when scripts are blocked or tab is dead.
         const success = await copyViaOffscreen(text);
         
-        // Resolve appropriate system notification message
         let statusKey;
         if (success) {
             statusKey = isStandardWebProtocol(url) ? "notifyCopySuccess" : "notifyCopySuccessRestricted";
@@ -428,17 +438,23 @@ function safeSelectiveEncode(text) {
 
 /**
  * Sanitizes page titles for use as Markdown link labels.
+ * @param {string} text
+ * @param {boolean} bracketToZenkaku
+ * @param {boolean} pipeToZenkaku
+ * @returns {string}
  */
 function cleanLabel(text, bracketToZenkaku, pipeToZenkaku) {
     if (!text) return "";
     let cleaned = text.replace(/\r?\n/g, ' ');
 
+    // Convert/remove Markdown-breaking characters in labels
     if (bracketToZenkaku) {
         cleaned = cleaned.replace(/\[/g, '［').replace(/\]/g, '］');
     } else {
         cleaned = cleaned.replace(/[\[\]]/g, '');
     }
 
+    // Convert pipe characters to prevent table layout breaks
     if (pipeToZenkaku) {
         cleaned = cleaned.replace(/\s*\|\s*/g, '｜');
     }

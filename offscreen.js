@@ -1,6 +1,8 @@
 /**
  * Quick Md Copy - Offscreen Document Script
- * Runs in a hidden document to provide clipboard access on restricted pages.
+ * 
+ * Provides background access to the Clipboard API. Necessary because 
+ * Service Workers cannot interact with the system clipboard directly.
  */
 
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
