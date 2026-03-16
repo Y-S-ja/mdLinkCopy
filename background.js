@@ -231,6 +231,33 @@ function showSystemNotification(message) {
 }
 
 /**
+ * Resolves the appropriate display message based on priority:
+ * 1. Preset override (if UI matches browser lang, it uses i18n, else JS static string)
+ * 2. User custom input (for 'custom' mode)
+ * 3. System i18n fallback
+ * 4. Hardcoded fallback string
+ */
+function resolveToastMessage(type, customValue, messageKey, statusKey) {
+    const browserLang = (chrome.i18n.getUILanguage() || 'en').split('-')[0];
+
+    // Handle language presets (ja, en, etc.)
+    if (OVERRIDE_MESSAGES[type]) {
+        // If the selected preset matches actual browser lang, try to get the most updated i18n string
+        if (type === browserLang) {
+            const i18nMsg = chrome.i18n.getMessage(messageKey);
+            if (i18nMsg) return i18nMsg;
+        }
+        // Otherwise use the JS-defined backup for that language
+        return OVERRIDE_MESSAGES[type][statusKey];
+    }
+
+    // Handle 'custom' mode: User input > Browser i18n > Default hardcoded string
+    return (customValue && customValue.trim()) ||
+        chrome.i18n.getMessage(messageKey) ||
+        OVERRIDE_MESSAGES[FALLBACK_LANG][statusKey];
+}
+
+/**
  * Coordinated clipboard copy flow.
  * Attempts script injection (to show UI toast) with an offscreen document fallback 
  * for restricted pages or failure cases.
@@ -240,22 +267,20 @@ async function dispatchCopy(tabId, url, text) {
     const duration = settings['notice-duration'];
 
     const uiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
-    const typeSuccess = settings['toast-msg-success-type'] || uiLang;
-    const typeFailed = settings['toast-msg-failed-type'] || uiLang;
 
-    let msgSuccess = '';
-    if (OVERRIDE_MESSAGES[typeSuccess]) {
-        msgSuccess = OVERRIDE_MESSAGES[typeSuccess].success;
-    } else {
-        msgSuccess = settings['toast-msg-success'] || (chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success);
-    }
+    const msgSuccess = resolveToastMessage(
+        settings['toast-msg-success-type'] || uiLang,
+        settings['toast-msg-success'],
+        "toastCopySuccess",
+        "success"
+    );
 
-    let msgFailed = '';
-    if (OVERRIDE_MESSAGES[typeFailed]) {
-        msgFailed = OVERRIDE_MESSAGES[typeFailed].failed;
-    } else {
-        msgFailed = settings['toast-msg-failed'] || (chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed);
-    }
+    const msgFailed = resolveToastMessage(
+        settings['toast-msg-failed-type'] || uiLang,
+        settings['toast-msg-failed'],
+        "toastCopyFailed",
+        "failed"
+    );
 
     if (isRestrictedPage(url)) {
         // Use offscreen fallback for restricted pages (Chrome internal pages, etc.)
