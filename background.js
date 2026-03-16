@@ -172,21 +172,29 @@ function getExpandedSelectionTextInPage() {
 }
 
 /**
- * Checks if a URL is a restricted browser internal page where script injection is prohibited.
- * @param {string} url
+ * Checks if a URL uses a standard web protocol (http or https).
+ * Links to other protocols (chrome://, file://, etc.) generally cannot be opened directly.
+ * @param {string} urlStr
  * @returns {boolean}
  */
-function isRestrictedPage(url) {
-    const restrictedPrefixes = ['chrome://', 'about:', 'https://chrome.google.com/webstore', 'edge://'];
-    return !url || restrictedPrefixes.some(prefix => url.startsWith(prefix));
+function isStandardWebProtocol(urlStr) {
+    try {
+        const url = new URL(urlStr);
+        return ['http:', 'https:'].includes(url.protocol);
+    } catch (e) {
+        return false;
+    }
 }
 
 /**
  * Shows a system notification as a fallback when UI toast injection is not possible.
  * @param {string} message
  */
-function showSystemNotification(message) {
-    const notifyMsg = message || chrome.i18n.getMessage("notifyRestrictedDefault") || "Restricted page";
+function showSystemNotification(message, url = null) {
+    const defaultMsg = url && !isStandardWebProtocol(url) 
+        ? chrome.i18n.getMessage("notifyRestrictedDefault") 
+        : "Restricted page";
+    const notifyMsg = message || defaultMsg;
     chrome.notifications.create({
         type: 'basic',
         iconUrl: 'images/icon192x192.png',
@@ -234,29 +242,25 @@ async function dispatchCopy(tabId, url, text) {
         "failed"
     );
 
-    if (isRestrictedPage(url)) {
-        // Use offscreen fallback for restricted pages (Chrome internal pages, etc.)
+    // Try direct script injection first. This will show a toast notification on standard pages.
+    chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: copyToClipboardWithNotice,
+        args: [text, duration, msgSuccess, msgFailed]
+    }).catch(async () => {
+        // Fallback to offscreen document when script injection is blocked (restricted pages or dead tabs)
         const success = await copyViaOffscreen(text);
+        
+        // Resolve appropriate system notification message
+        let statusKey;
         if (success) {
-            showSystemNotification(chrome.i18n.getMessage("notifyCopySuccessRestricted"));
+            statusKey = isStandardWebProtocol(url) ? "notifyCopySuccess" : "notifyCopySuccessRestricted";
         } else {
-            showSystemNotification(chrome.i18n.getMessage("notifyCopyFailedRestricted"));
+            statusKey = isStandardWebProtocol(url) ? "notifyCopyFailed" : "notifyCopyFailedRestricted";
         }
-    } else {
-        chrome.scripting.executeScript({
-            target: { tabId: tabId },
-            func: copyToClipboardWithNotice,
-            args: [text, duration, msgSuccess, msgFailed]
-        }).catch(async () => {
-            // Service worker uses offscreen document when direct clipboard write in tab fails
-            const success = await copyViaOffscreen(text);
-            if (!success) {
-                showSystemNotification(chrome.i18n.getMessage("notifyCopyFailed"));
-            } else {
-                showSystemNotification(chrome.i18n.getMessage("notifyCopySuccess"));
-            }
-        });
-    }
+        
+        showSystemNotification(chrome.i18n.getMessage(statusKey));
+    });
 }
 
 /**
@@ -355,6 +359,7 @@ async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) 
  */
 async function handleSelectionCopyFlow(tab, fallbackText = null) {
     let finalSelection = fallbackText;
+    let scriptFailed = false;
 
     try {
         const result = await chrome.scripting.executeScript({
@@ -365,14 +370,15 @@ async function handleSelectionCopyFlow(tab, fallbackText = null) {
             finalSelection = result[0].result;
         }
     } catch (err) {
-        // Restricted pages or script blocking won't stop the flow if we already have fallbackText
+        scriptFailed = true;
     }
 
     if (finalSelection) {
         performSelectionCopy(finalSelection, tab.url, tab);
     } else {
-        const msgKey = isRestrictedPage(tab.url) ? "errShortcutRestricted" : "errNoTextSelected";
-        showSystemNotification(chrome.i18n.getMessage(msgKey));
+        // If script failed and we have no fallback, it's a restricted page shortcut attempt
+        const msgKey = scriptFailed ? "errShortcutRestricted" : "errNoTextSelected";
+        showSystemNotification(chrome.i18n.getMessage(msgKey), tab.url);
     }
 }
 
