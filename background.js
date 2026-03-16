@@ -461,74 +461,44 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
         segmenter = null;
     }
 
-    // Start Part extraction (find the best word boundary near baseLen)
-    let startPart = "";
-    let actualStartEndIdx = baseLen;
-    if (segmenter) {
-        const segments = Array.from(segmenter.segment(cleanText));
-        for (const segment of segments) {
-            const segmentStartIdx = segment.index;
-            const segmentEndIdx = segmentStartIdx + segment.segment.length;
-
-            // Check if the current segment contains the target baseLen index
-            if (segmentStartIdx <= baseLen && segmentEndIdx >= baseLen) {
-                const distanceToStart = baseLen - segmentStartIdx;
-                const distanceToEnd = segmentEndIdx - baseLen;
-
-                // Choose the closer boundary, but prefer segmentEnd if at the absolute start
-                const isStartBoundaryCloser = distanceToStart < distanceToEnd;
-                const useSegmentStart = isStartBoundaryCloser && segmentStartIdx > 0;
-
-                actualStartEndIdx = useSegmentStart ? segmentStartIdx : segmentEndIdx;
-                startPart = cleanText.substring(0, actualStartEndIdx);
-                break;
-            }
-        }
-    } else {
-        startPart = cleanText.substring(0, baseLen);
-        const followingText = cleanText.substring(baseLen);
-        const startExtension = followingText.match(/^[^\s,.;:!?]*/);
-        if (startExtension) {
-            startPart += startExtension[0];
-            actualStartEndIdx = baseLen + startExtension[0].length;
-        }
-    }
-
-    // End Part extraction (find the best word boundary near the end)
-    let endPart = "";
-    let actualEndStartIdx = cleanText.length - baseLen;
-    if (segmenter) {
-        const segments = Array.from(segmenter.segment(cleanText));
-        const targetIdx = cleanText.length - baseLen;
+    /**
+     * Helper to find a word boundary near a specific index.
+     */
+    function findBestBoundary(textStr, targetIdx) {
+        if (!segmenter) return targetIdx;
+        const segments = segmenter.segment(textStr);
+        let lastBoundary = 0;
 
         for (const segment of segments) {
-            const segmentStartIdx = segment.index;
-            const segmentEndIdx = segmentStartIdx + segment.segment.length;
+            const start = segment.index;
+            const end = start + segment.segment.length;
 
-            if (segmentStartIdx <= targetIdx && segmentEndIdx >= targetIdx) {
-                const distanceToStart = targetIdx - segmentStartIdx;
-                const distanceToEnd = segmentEndIdx - targetIdx;
-
-                // Choose the closer boundary, but prefer segmentStart if at the absolute end
-                const isEndBoundaryCloser = distanceToEnd < distanceToStart;
-                const useSegmentEnd = isEndBoundaryCloser && segmentEndIdx < cleanText.length;
-
-                actualEndStartIdx = useSegmentEnd ? segmentEndIdx : segmentStartIdx;
-                endPart = cleanText.substring(actualEndStartIdx);
-                break;
+            if (start <= targetIdx && end >= targetIdx) {
+                const distToStart = targetIdx - start;
+                const distToEnd = end - targetIdx;
+                // Return start or end based on proximity, preferring end at the very start
+                return (distToStart < distToEnd && start > 0) ? start : end;
             }
+            lastBoundary = end;
+            if (start > targetIdx) break; // Optimization: stop scanning once we pass target
         }
-    } else {
-        endPart = cleanText.substring(cleanText.length - baseLen);
-        const leadingText = cleanText.substring(0, cleanText.length - baseLen);
-        const endExtension = leadingText.match(/[^\s,.;:!?]*$/);
-        if (endExtension) {
-            endPart = endExtension[0] + endPart;
-            actualEndStartIdx = cleanText.length - baseLen - endExtension[0].length;
-        }
+        return lastBoundary;
     }
 
-    // Prevent overlap duplication: return full text if start and end boundaries cross
+    // Optimization: Only scan relevant parts of the text for boundaries
+    // For startPart: scan double the baseLen at the beginning
+    const startScanRange = Math.min(cleanText.length, baseLen * 2);
+    const actualStartEndIdx = findBestBoundary(cleanText.substring(0, startScanRange), baseLen);
+    const startPart = cleanText.substring(0, actualStartEndIdx);
+
+    // For endPart: scan double the baseLen at the end
+    const endScanOffset = Math.max(0, cleanText.length - baseLen * 2);
+    const endScanText = cleanText.substring(endScanOffset);
+    const targetIdxInSuffix = cleanText.length - baseLen - endScanOffset;
+    const boundaryInSuffix = findBestBoundary(endScanText, targetIdxInSuffix);
+    const actualEndStartIdx = endScanOffset + boundaryInSuffix;
+    const endPart = cleanText.substring(actualEndStartIdx);
+
     if (actualStartEndIdx >= actualEndStartIdx) {
         return encoder(cleanText);
     }
