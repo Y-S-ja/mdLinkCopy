@@ -45,9 +45,17 @@ chrome.runtime.onInstalled.addListener(async () => {
     const newSettings = {};
     let needsUpdate = false;
 
+    // Determine target default language for toast messages based on browser locale
+    const defaultUiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
+
     for (const [key, defaultValue] of Object.entries(INITIAL_SETTINGS)) {
         if (currentSettings[key] === undefined) {
-            newSettings[key] = defaultValue;
+            // Apply localized language instead of empty strings for toast types
+            if (key.endsWith('-type') && defaultValue === '') {
+                newSettings[key] = defaultUiLang;
+            } else {
+                newSettings[key] = defaultValue;
+            }
             needsUpdate = true;
         }
     }
