@@ -21,24 +21,12 @@ const settingIds = [
 // Global fallback language obtained directly from manifest file
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
-// Locale-specific static messages used for defaults and previews
-const OVERRIDE_MESSAGES = {
-    ja: {
-        success: "Markdownをコピーしました！",
-        failed: "コピーに失敗しました"
-    },
-    en: {
-        success: "Markdown Copied!",
-        failed: "Copy Failed"
-    }
-};
-
 /**
  * Mapping of text setting IDs to their default translated fallback strings.
  */
 const defaultTextSettings = {
-    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success,
-    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed,
+    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!",
+    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed",
     'previewBtnHide': () => chrome.i18n.getMessage("previewBtnHide") || "Hide Preview",
     'previewBtnShow': () => chrome.i18n.getMessage("previewBtnShow") || "Show Preview"
 };
@@ -69,9 +57,8 @@ function setElementValue(el, value) {
  */
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
-        const defaultUiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
-        if (items['toast-msg-success-type'] === undefined) items['toast-msg-success-type'] = defaultUiLang;
-        if (items['toast-msg-failed-type'] === undefined) items['toast-msg-failed-type'] = defaultUiLang;
+        if (items['toast-msg-success-type'] === undefined) items['toast-msg-success-type'] = 'default';
+        if (items['toast-msg-failed-type'] === undefined) items['toast-msg-failed-type'] = 'default';
 
         settingIds.forEach(id => {
             const el = document.getElementById(id);
@@ -135,19 +122,20 @@ function enforceCustomInputVisibility() {
         const inputEl = document.getElementById(`toast-msg-${type}`);
 
         if (selectEl && inputEl) {
-            const val = selectEl.value;
-            if (val === 'custom') {
-                inputEl.disabled = false;
+            const isCustom = selectEl.value === 'custom';
+            inputEl.disabled = !isCustom;
+
+            if (isCustom) {
                 chrome.storage.sync.get(`toast-msg-${type}`, (res) => {
                     if (res[`toast-msg-${type}`]) {
                         inputEl.value = res[`toast-msg-${type}`];
                     }
                 });
             } else {
-                inputEl.disabled = true;
-                if (OVERRIDE_MESSAGES[val]) {
-                    inputEl.value = type === 'success' ? OVERRIDE_MESSAGES[val].success : OVERRIDE_MESSAGES[val].failed;
-                }
+                // If it's 'default', show the localized standard message
+                inputEl.value = type === 'success' ? 
+                    (chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!") : 
+                    (chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed");
             }
         }
     });

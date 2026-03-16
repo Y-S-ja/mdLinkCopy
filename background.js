@@ -13,25 +13,19 @@ const INITIAL_SETTINGS = {
     'use-readable-fragment': true,
     'bracket-to-zenkaku': true,
     'pipe-to-zenkaku': true,
-    'toast-msg-success-type': '',
+    'toast-msg-success-type': 'default',
     'toast-msg-success': '',
-    'toast-msg-failed-type': '',
+    'toast-msg-failed-type': 'default',
     'toast-msg-failed': ''
 };
 
 // Global fallback language obtained directly from manifest file
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
-// Locale-specific static overrides for UI languages
+// Locale-specific static overrides for UI languages (final fallback)
 const OVERRIDE_MESSAGES = {
-    ja: {
-        success: "Markdownをコピーしました！",
-        failed: "コピーに失敗しました"
-    },
-    en: {
-        success: "Markdown Copied!",
-        failed: "Copy Failed"
-    }
+    success: "Markdown Copied!",
+    failed: "Copy Failed"
 };
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -45,17 +39,9 @@ chrome.runtime.onInstalled.addListener(async () => {
     const newSettings = {};
     let needsUpdate = false;
 
-    // Determine target default language for toast messages based on browser locale
-    const defaultUiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
-
     for (const [key, defaultValue] of Object.entries(INITIAL_SETTINGS)) {
         if (currentSettings[key] === undefined) {
-            // Apply localized language instead of empty strings for toast types
-            if (key.endsWith('-type') && defaultValue === '') {
-                newSettings[key] = defaultUiLang;
-            } else {
-                newSettings[key] = defaultValue;
-            }
+            newSettings[key] = defaultValue;
             needsUpdate = true;
         }
     }
@@ -240,29 +226,15 @@ function showSystemNotification(message) {
 
 /**
  * Resolves the appropriate display message based on priority:
- * 1. Preset override (if UI matches browser lang, it uses i18n, else JS static string)
- * 2. User custom input (for 'custom' mode)
- * 3. System i18n fallback
- * 4. Hardcoded fallback string
+ * 1. User custom input (if 'custom' mode)
+ * 2. System i18n fallback
+ * 3. Hardcoded English fallback string
  */
 function resolveToastMessage(type, customValue, messageKey, statusKey) {
-    const browserLang = (chrome.i18n.getUILanguage() || 'en').split('-')[0];
-
-    // Handle language presets (ja, en, etc.)
-    if (OVERRIDE_MESSAGES[type]) {
-        // If the selected preset matches actual browser lang, try to get the most updated i18n string
-        if (type === browserLang) {
-            const i18nMsg = chrome.i18n.getMessage(messageKey);
-            if (i18nMsg) return i18nMsg;
-        }
-        // Otherwise use the JS-defined backup for that language
-        return OVERRIDE_MESSAGES[type][statusKey];
+    if (type === 'custom' && customValue?.trim()) {
+        return customValue.trim();
     }
-
-    // Handle 'custom' mode: User input > Browser i18n > Default hardcoded string
-    return (customValue && customValue.trim()) ||
-        chrome.i18n.getMessage(messageKey) ||
-        OVERRIDE_MESSAGES[FALLBACK_LANG][statusKey];
+    return chrome.i18n.getMessage(messageKey) || OVERRIDE_MESSAGES[statusKey];
 }
 
 /**
