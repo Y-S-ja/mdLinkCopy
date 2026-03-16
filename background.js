@@ -315,9 +315,9 @@ async function copyViaOffscreen(text) {
 async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) {
     try {
         await navigator.clipboard.writeText(text);
-        showNotice(msgSuccess || "Markdown Copied!", "#2ecc71", duration);
+        showNotice(msgSuccess, "#2ecc71", duration);
     } catch (err) {
-        showNotice(msgFailed || "Copy Failed", "#e74c3c", duration);
+        showNotice(msgFailed, "#e74c3c", duration);
     }
 
     function showNotice(message, bgColor, displayMs) {
