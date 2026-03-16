@@ -443,16 +443,12 @@ function createMarkdownLink(title, url, selectionText, settings) {
  * @returns {string}
  */
 function safeSelectiveEncode(text) {
-    return text
-        .replace(/%/g, '%25')
-        .replace(/ /g, '%20')
-        .replace(/\(/g, '%28')
-        .replace(/\)/g, '%29')
-        .replace(/#/g, '%23')
-        .replace(/,/g, '%2C')
-        .replace(/-/g, '%2D')
-        .replace(/&/g, '%26')
-        .replace(/\n/g, '%20');
+    // Replace characters that could break Markdown links ([])() or Text Fragment syntax (#&,=-).
+    // Using a single regex pass with a capture group and a map for better performance.
+    return text.replace(/[%#&()\[\] ,\-?=\n]/g, (char) => {
+        if (char === '\n') return '%20';
+        return encodeURIComponent(char);
+    });
 }
 
 /**
