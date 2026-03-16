@@ -38,7 +38,9 @@ const OVERRIDE_MESSAGES = {
  */
 const defaultTextSettings = {
     'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || OVERRIDE_MESSAGES[FALLBACK_LANG].success,
-    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed
+    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || OVERRIDE_MESSAGES[FALLBACK_LANG].failed,
+    'previewBtnHide': () => chrome.i18n.getMessage("previewBtnHide") || "Hide Preview",
+    'previewBtnShow': () => chrome.i18n.getMessage("previewBtnShow") || "Show Preview"
 };
 
 /**
@@ -255,12 +257,12 @@ function togglePreviewPanel(show, animate = true) {
     if (show) {
         panel.classList.remove('hidden');
         btn.textContent = '×';
-        btn.title = chrome.i18n.getMessage("previewBtnHide") || 'プレビューを隠す';
+        btn.title = defaultTextSettings['previewBtnHide'];
         btn.classList.add('active');
     } else {
         panel.classList.add('hidden');
         btn.textContent = '👀';
-        btn.title = chrome.i18n.getMessage("previewBtnShow") || 'プレビューを表示';
+        btn.title = defaultTextSettings['previewBtnShow'];
         btn.classList.remove('active');
     }
 
