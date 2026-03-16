@@ -94,20 +94,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
             const { demoTitle, demoSelection, demoUrl, settings: rawSettings } = message.data;
             const settings = normalizeSettings(rawSettings);
 
-            const title = cleanLabel(demoTitle, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
-            const selectionText = generateTextFragmentParam(
-                demoSelection,
-                settings['threshold'],
-                settings['base-len'],
-                settings['use-start-end-format'],
-                settings['use-readable-fragment']
-            );
-
-            const pageUrl = demoUrl.split('#')[0];
-            const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
-            const fragment = selectionText ? `#:~:text=${selectionText}` : '';
-            const markdownLink = `[${title}](${finalUrl}${fragment})`;
-
+            const markdownLink = createMarkdownLink(demoTitle, demoUrl, demoSelection, settings);
             sendResponse({ markdownLink });
         } catch (err) {
             sendResponse({ markdownLink: (chrome.i18n.getMessage("errPreviewGeneration") || "Error: ") + err.message });
@@ -305,20 +292,8 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
         'use-readable-fragment', 'bracket-to-zenkaku', 'pipe-to-zenkaku'
     ]);
 
-    const selectionText = generateTextFragmentParam(
-        rawSelection,
-        settings['threshold'],
-        settings['base-len'],
-        settings['use-start-end-format'],
-        settings['use-readable-fragment']
-    );
-
-    const pageUrl = rawUrl.split('#')[0];
-    const title = cleanLabel(tab.title, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
-    const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
-    const fragment = `#:~:text=${selectionText}`;
-
-    dispatchCopy(tab.id, tab.url, `[${title}](${finalUrl}${fragment})`);
+    const markdownLink = createMarkdownLink(tab.title, rawUrl, rawSelection, settings);
+    dispatchCopy(tab.id, tab.url, markdownLink);
 }
 
 /**
@@ -326,11 +301,8 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
  */
 async function copyPageLink(tab) {
     const settings = await getSettings(['use-readable-url', 'bracket-to-zenkaku', 'pipe-to-zenkaku']);
-    const pageUrl = tab.url.split('#')[0];
-    const title = cleanLabel(tab.title, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
-    const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
-
-    dispatchCopy(tab.id, tab.url, `[${title}](${finalUrl})`);
+    const markdownLink = createMarkdownLink(tab.title, tab.url, null, settings);
+    dispatchCopy(tab.id, tab.url, markdownLink);
 }
 
 chrome.action.onClicked.addListener((tab) => {
@@ -400,6 +372,35 @@ async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) 
             setTimeout(() => notice.remove(), 400);
         }, displayMs);
     }
+}
+
+/**
+ * Core utility to assemble a Markdown link.
+ * Integrates title cleaning, URL formatting, and text fragment generation.
+ * @param {string} title - Raw page or demo title.
+ * @param {string} url - Raw URL.
+ * @param {string|null} selectionText - Optional selected text for fragments.
+ * @param {Object} settings - Normalized settings object.
+ * @returns {string} The formatted Markdown link.
+ */
+function createMarkdownLink(title, url, selectionText, settings) {
+    const cleanedTitle = cleanLabel(title, settings['bracket-to-zenkaku'], settings['pipe-to-zenkaku']);
+    const pageUrl = url.split('#')[0];
+    const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
+
+    let fragment = '';
+    if (selectionText) {
+        const param = generateTextFragmentParam(
+            selectionText,
+            settings['threshold'],
+            settings['base-len'],
+            settings['use-start-end-format'],
+            settings['use-readable-fragment']
+        );
+        if (param) fragment = `#:~:text=${param}`;
+    }
+
+    return `[${cleanedTitle}](${finalUrl}${fragment})`;
 }
 
 /**
