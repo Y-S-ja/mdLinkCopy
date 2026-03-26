@@ -15,16 +15,28 @@
     "message": "📝 Label Formatting"
   },
   "bracketTitle": {
-    "message": "Escape brackets [ ]"
+    "message": "Bracket [ ] Processing"
   },
   "bracketDesc": {
-    "message": "If ON, brackets will be escaped (\\[ \\]) in the link text."
+    "message": "Select how to process brackets [ ] in the link text."
   },
   "pipeTitle": {
-    "message": "Escape pipe |"
+    "message": "Pipe | Processing"
   },
   "pipeDesc": {
-    "message": "If ON, pipes will be escaped (\\|) in the link text."
+    "message": "Select how to process pipes |"
+  },
+  "optLabelEscape": {
+    "message": "Escape"
+  },
+  "optLabelZenkaku": {
+    "message": "Full-width"
+  },
+  "optLabelRemove": {
+    "message": "Remove"
+  },
+  "optLabelNone": {
+    "message": "Keep as is"
   },
   "sectUrlFormat": {
     "message": "🔗 URL Formatting"

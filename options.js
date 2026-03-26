@@ -4,7 +4,7 @@
  * Synchronizes UI elements with chrome.storage.sync and manages live preview 
  * generation for real-time feedback.
  */
-
+// object化検討
 const settingIds = [
     'notice-duration',
     'threshold',
@@ -12,8 +12,8 @@ const settingIds = [
     'use-readable-url',
     'use-start-end-format',
     'use-readable-fragment',
-    'escape-bracket',
-    'escape-pipe',
+    'bracket-style',
+    'pipe-style',
     'toast-msg-success-type',
     'toast-msg-success',
     'toast-msg-failed-type',
@@ -69,7 +69,11 @@ function restoreOptions() {
 
             // Fallback logic for specialized select mapping
             if (val === undefined && el.type === 'select-one') {
-                val = id.includes('success') ? items['toast-msg-success-type'] : items['toast-msg-failed-type'];
+                if (id.includes('toast')) {
+                    val = id.includes('success') ? items['toast-msg-success-type'] : items['toast-msg-failed-type'];
+                } else if (id === 'bracket-style' || id === 'pipe-style') {
+                    val = 'escape';
+                }
             }
 
             // Fallback for text elements

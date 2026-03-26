@@ -15,16 +15,28 @@
     "message": "📝 ラベルの整形"
   },
   "bracketTitle": {
-    "message": "カッコ [ ] をエスケープする"
+    "message": "カッコ [ ] の処理"
   },
   "bracketDesc": {
-    "message": "ONにすると、カッコ [ ] がエスケープされます（\\[ \\]）"
+    "message": "リンク内の [ ] の処理方法を選択します"
   },
   "pipeTitle": {
-    "message": "パイプ | をエスケープする"
+    "message": "パイプ | の処理"
   },
   "pipeDesc": {
-    "message": "ONにすると、パイプ | がエスケープされます（\\|）"
+    "message": "リンク内の | の処理方法を選択"
+  },
+  "optLabelEscape": {
+    "message": "エスケープ"
+  },
+  "optLabelZenkaku": {
+    "message": "全角に変換"
+  },
+  "optLabelRemove": {
+    "message": "削除"
+  },
+  "optLabelNone": {
+    "message": "そのまま"
   },
   "sectUrlFormat": {
     "message": "🔗 URLの形式"
