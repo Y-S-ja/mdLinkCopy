@@ -198,8 +198,8 @@ function isStandardWebProtocol(urlStr) {
  * @param {string} message
  */
 function showSystemNotification(message, url = null) {
-    const defaultMsg = url && !isStandardWebProtocol(url) 
-        ? chrome.i18n.getMessage("notifyRestrictedDefault") 
+    const defaultMsg = url && !isStandardWebProtocol(url)
+        ? chrome.i18n.getMessage("notifyRestrictedDefault")
         : "Restricted page";
     const notifyMsg = message || defaultMsg;
     chrome.notifications.create({
@@ -261,14 +261,14 @@ async function dispatchCopy(tabId, url, text) {
     }).catch(async () => {
         // Fallback: offscreen document handles clipboard access when scripts are blocked or tab is dead.
         const success = await copyViaOffscreen(text);
-        
+
         let statusKey;
         if (success) {
             statusKey = isStandardWebProtocol(url) ? "notifyCopySuccess" : "notifyCopySuccessRestricted";
         } else {
             statusKey = isStandardWebProtocol(url) ? "notifyCopyFailed" : "notifyCopyFailedRestricted";
         }
-        
+
         showSystemNotification(chrome.i18n.getMessage(statusKey));
     });
 }
@@ -454,12 +454,14 @@ function cleanLabel(text, bracketToZenkaku, pipeToZenkaku) {
     if (bracketToZenkaku) {
         cleaned = cleaned.replace(/\[/g, '［').replace(/\]/g, '］');
     } else {
-        cleaned = cleaned.replace(/[\[\]]/g, '');
+        cleaned = cleaned.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
     }
 
     // Convert pipe characters to prevent table layout breaks
     if (pipeToZenkaku) {
         cleaned = cleaned.replace(/\s*\|\s*/g, '｜');
+    } else {
+        cleaned = cleaned.replace(/\|/g, '\\|');
     }
 
     return cleaned.trim();

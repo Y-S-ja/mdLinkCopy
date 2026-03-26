@@ -1,60 +1,176 @@
 {
-  "extName": { "message": "Quick Md Copy" },
-  "extDesc": { "message": "Instantly copy Markdown links for pages or text selections (with highlight support)" },
-  "optionsPageTitle": { "message": "Quick Md Copy - Settings" },
-  "optionsSubtitle": { "message": "Customize the extension's behavior" },
-  "sectLabelFormat": { "message": "📝 Label Formatting" },
-  "bracketTitle": { "message": "Convert brackets [ ] to full-width" },
-  "bracketDesc": { "message": "If OFF, brackets will be removed from the link text." },
-  "pipeTitle": { "message": "Convert pipe | to full-width" },
-  "pipeDesc": { "message": "If OFF, outputs as half-width (may break Markdown tables)." },
-  "sectUrlFormat": { "message": "🔗 URL Formatting" },
-  "urlDecodeTitle": { "message": "Decode URLs to readable format" },
-  "urlDecodeDesc": { "message": "If ON, encoded URLs (e.g. Japanese chars) are decoded." },
-  "fragDecodeTitle": { "message": "Decode Text Fragments" },
-  "fragDecodeDesc": { "message": "If ON, encoded text fragments in URLs will be decoded." },
-  "sectTextTrunc": { "message": "✂️ Text Truncation" },
-  "truncFormatTitle": { "message": "Truncate very long selected text" },
-  "truncFormatDesc": { "message": "If ON, ultra-long text will be shortened using the 'Start...,End...' format." },
-  "truncThresholdTitle": { "message": "Truncation Threshold (Chars)" },
-  "truncThresholdDesc": { "message": "Text longer than this limit will be truncated." },
-  "truncBaseLenTitle": { "message": "Extraction Length (Chars)" },
-  "truncBaseLenDesc": { "message": "Number of characters to extract from start and end." },
-  "sectNotification": { "message": "🔔 Notification Settings" },
-  "noticeDurationTitle": { "message": "Notification Duration (ms)" },
-  "noticeDurationDesc": { "message": "Time until the 'Copied!' toast disappears." },
-  "defaultToastLang": { "message": "en" },
-  "toastMsgSuccessTitle": { "message": "Success Notification Text" },
-  "toastMsgSuccessDesc": { "message": "Text to show when copying succeeds" },
-  "toastMsgFailedTitle": { "message": "Failure Notification Text" },
-  "toastMsgFailedDesc": { "message": "Text to show when copying fails" },
-  "toastMsgLangDefault": { "message": "Default" },
-  "toastMsgLangCustom": { "message": "Custom Text" },
-  "previewSectTitle": { "message": "👀 Live Preview" },
-  "previewTitleLabel": { "message": "Page Title" },
-  "previewTitleVal": { "message": "[Sample] Page Title | Site Name" },
-  "previewSelLabel": { "message": "Selected Text" },
-  "previewSelVal": { "message": "This is a sample text for the live preview. If you select a very long text, you can see how it is truncated into 'Start...,End...' format based on your settings." },
-  "previewOutputLabel": { "message": "Generated Markdown" },
-  "previewOutputInit": { "message": "Generating..." },
-  "previewNote": { "message": "* Changes are applied immediately." },
-  "statusSaved": { "message": "Saved" },
-  "previewBtnShow": { "message": "Show Preview" },
-  "previewBtnHide": { "message": "Hide Preview" },
-  "unitChar": { "message": "chars" },
-  "unitMS": { "message": "ms" },
-  "cmdCopyPageDesc": { "message": "Copy Markdown link for the entire page" },
-  "cmdCopySelectionDesc": { "message": "Copy Markdown link for the selection" },
-  "contextMenuTitle": { "message": "Copy Markdown link for selection" },
-  "errPreviewGeneration": { "message": "Error occurred: " },
-  "errShortcutRestricted": { "message": "Shortcuts cannot extract text on this page.\nPlease try using the right-click menu." },
-  "errNoTextSelected": { "message": "No text found. Please select some text and try again." },
-  "errScriptBlocked": { "message": "Script execution blocked.\nPlease try copying via the right-click menu." },
-  "notifyRestrictedDefault": { "message": "Restricted page (Right-click menu recommended)" },
-  "notifyCopySuccessRestricted": { "message": "Markdown copied (Note: URL cannot be opened directly due to browser security)" },
-  "notifyCopyFailedRestricted": { "message": "Copy failed (System Notice for restricted page)" },
-  "notifyCopyFailed": { "message": "Copy failed" },
-  "notifyCopySuccess": { "message": "Markdown copied (System notice)" },
-  "toastCopySuccess": { "message": "Markdown Copied!" },
-  "toastCopyFailed": { "message": "Copy Failed" }
+  "extName": {
+    "message": "Quick Md Copy"
+  },
+  "extDesc": {
+    "message": "Instantly copy Markdown links for pages or text selections (with highlight support)"
+  },
+  "optionsPageTitle": {
+    "message": "Quick Md Copy - Settings"
+  },
+  "optionsSubtitle": {
+    "message": "Customize the extension's behavior"
+  },
+  "sectLabelFormat": {
+    "message": "📝 Label Formatting"
+  },
+  "bracketTitle": {
+    "message": "Convert brackets [ ] to full-width"
+  },
+  "bracketDesc": {
+    "message": "If OFF, brackets will be escaped (\\[ \\]) in the link text."
+  },
+  "pipeTitle": {
+    "message": "Convert pipe | to full-width"
+  },
+  "pipeDesc": {
+    "message": "If OFF, pipes will be escaped (\\|) in the link text."
+  },
+  "sectUrlFormat": {
+    "message": "🔗 URL Formatting"
+  },
+  "urlDecodeTitle": {
+    "message": "Decode URLs to readable format"
+  },
+  "urlDecodeDesc": {
+    "message": "If ON, encoded URLs (e.g. Japanese chars) are decoded."
+  },
+  "fragDecodeTitle": {
+    "message": "Decode Text Fragments"
+  },
+  "fragDecodeDesc": {
+    "message": "If ON, encoded text fragments in URLs will be decoded."
+  },
+  "sectTextTrunc": {
+    "message": "✂️ Text Truncation"
+  },
+  "truncFormatTitle": {
+    "message": "Truncate very long selected text"
+  },
+  "truncFormatDesc": {
+    "message": "If ON, ultra-long text will be shortened using the 'Start...,End...' format."
+  },
+  "truncThresholdTitle": {
+    "message": "Truncation Threshold (Chars)"
+  },
+  "truncThresholdDesc": {
+    "message": "Text longer than this limit will be truncated."
+  },
+  "truncBaseLenTitle": {
+    "message": "Extraction Length (Chars)"
+  },
+  "truncBaseLenDesc": {
+    "message": "Number of characters to extract from start and end."
+  },
+  "sectNotification": {
+    "message": "🔔 Notification Settings"
+  },
+  "noticeDurationTitle": {
+    "message": "Notification Duration (ms)"
+  },
+  "noticeDurationDesc": {
+    "message": "Time until the 'Copied!' toast disappears."
+  },
+  "defaultToastLang": {
+    "message": "en"
+  },
+  "toastMsgSuccessTitle": {
+    "message": "Success Notification Text"
+  },
+  "toastMsgSuccessDesc": {
+    "message": "Text to show when copying succeeds"
+  },
+  "toastMsgFailedTitle": {
+    "message": "Failure Notification Text"
+  },
+  "toastMsgFailedDesc": {
+    "message": "Text to show when copying fails"
+  },
+  "toastMsgLangDefault": {
+    "message": "Default"
+  },
+  "toastMsgLangCustom": {
+    "message": "Custom Text"
+  },
+  "previewSectTitle": {
+    "message": "👀 Live Preview"
+  },
+  "previewTitleLabel": {
+    "message": "Page Title"
+  },
+  "previewTitleVal": {
+    "message": "[Sample] Page Title | Site Name"
+  },
+  "previewSelLabel": {
+    "message": "Selected Text"
+  },
+  "previewSelVal": {
+    "message": "This is a sample text for the live preview. If you select a very long text, you can see how it is truncated into 'Start...,End...' format based on your settings."
+  },
+  "previewOutputLabel": {
+    "message": "Generated Markdown"
+  },
+  "previewOutputInit": {
+    "message": "Generating..."
+  },
+  "previewNote": {
+    "message": "* Changes are applied immediately."
+  },
+  "statusSaved": {
+    "message": "Saved"
+  },
+  "previewBtnShow": {
+    "message": "Show Preview"
+  },
+  "previewBtnHide": {
+    "message": "Hide Preview"
+  },
+  "unitChar": {
+    "message": "chars"
+  },
+  "unitMS": {
+    "message": "ms"
+  },
+  "cmdCopyPageDesc": {
+    "message": "Copy Markdown link for the entire page"
+  },
+  "cmdCopySelectionDesc": {
+    "message": "Copy Markdown link for the selection"
+  },
+  "contextMenuTitle": {
+    "message": "Copy Markdown link for selection"
+  },
+  "errPreviewGeneration": {
+    "message": "Error occurred: "
+  },
+  "errShortcutRestricted": {
+    "message": "Shortcuts cannot extract text on this page.\nPlease try using the right-click menu."
+  },
+  "errNoTextSelected": {
+    "message": "No text found. Please select some text and try again."
+  },
+  "errScriptBlocked": {
+    "message": "Script execution blocked.\nPlease try copying via the right-click menu."
+  },
+  "notifyRestrictedDefault": {
+    "message": "Restricted page (Right-click menu recommended)"
+  },
+  "notifyCopySuccessRestricted": {
+    "message": "Markdown copied (Note: URL cannot be opened directly due to browser security)"
+  },
+  "notifyCopyFailedRestricted": {
+    "message": "Copy failed (System Notice for restricted page)"
+  },
+  "notifyCopyFailed": {
+    "message": "Copy failed"
+  },
+  "notifyCopySuccess": {
+    "message": "Markdown copied (System notice)"
+  },
+  "toastCopySuccess": {
+    "message": "Markdown Copied!"
+  },
+  "toastCopyFailed": {
+    "message": "Copy Failed"
+  }
 }
