@@ -13,8 +13,8 @@ const INITIAL_SETTINGS = {
     'use-readable-url': true,
     'use-start-end-format': true,
     'use-readable-fragment': true,
-    'escape-bracket': true,
-    'escape-pipe': true,
+    'bracket-style': 'escape',
+    'pipe-style': 'escape',
     'toast-msg-success-type': 'default',
     'toast-msg-success': '',
     'toast-msg-failed-type': 'default',
@@ -280,7 +280,7 @@ async function dispatchCopy(tabId, url, text) {
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
     const settings = await getSettings([
         'threshold', 'base-len', 'use-readable-url', 'use-start-end-format',
-        'use-readable-fragment', 'escape-bracket', 'escape-pipe'
+        'use-readable-fragment', 'bracket-style', 'pipe-style'
     ]);
 
     const markdownLink = createMarkdownLink(tab.title, rawUrl, rawSelection, settings);
@@ -291,7 +291,7 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
  * Handles basic page-link generation.
  */
 async function copyPageLink(tab) {
-    const settings = await getSettings(['use-readable-url', 'escape-bracket', 'escape-pipe']);
+    const settings = await getSettings(['use-readable-url', 'bracket-style', 'pipe-style']);
     const markdownLink = createMarkdownLink(tab.title, tab.url, null, settings);
     dispatchCopy(tab.id, tab.url, markdownLink);
 }
@@ -402,7 +402,7 @@ async function handleSelectionCopyFlow(tab, fallbackText = null) {
  * @returns {string} The formatted Markdown link.
  */
 function createMarkdownLink(title, url, selectionText, settings) {
-    const cleanedTitle = cleanLabel(title, settings['escape-bracket'], settings['escape-pipe']);
+    const cleanedTitle = cleanLabel(title, settings['bracket-style'], settings['pipe-style']);
     const pageUrl = url.split('#')[0];
     const finalUrl = settings['use-readable-url'] ? getReadableUrl(pageUrl) : pageUrl;
 
@@ -442,26 +442,46 @@ function safeSelectiveEncode(text) {
 /**
  * Sanitizes page titles for use as Markdown link labels.
  * @param {string} text
- * @param {boolean} escapeBracket
- * @param {boolean} escapePipe
+ * @param {string} bracketStyle
+ * @param {string} pipeStyle
  * @returns {string}
  */
-function cleanLabel(text, escapeBracket, escapePipe) {
+function cleanLabel(text, bracketStyle, pipeStyle) {
     if (!text) return "";
     let cleaned = text.replace(/\r?\n/g, ' ');
 
-    // Convert/remove Markdown-breaking characters in labels
-    if (escapeBracket) {
-        cleaned = cleaned.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
-    } else {
-        cleaned = cleaned.replace(/\[/g, '［').replace(/\]/g, '］');
+    // Handle brackets based on selected mode
+    switch (bracketStyle) {
+        case 'escape':
+            cleaned = cleaned.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+            break;
+        case 'zenkaku':
+            cleaned = cleaned.replace(/\[/g, '［').replace(/\]/g, '］');
+            break;
+        case 'remove':
+            cleaned = cleaned.replace(/[\[\]]/g, '');
+            break;
+        case 'none':
+        default:
+            // Keep as is
+            break;
     }
 
-    // Convert pipe characters to prevent table layout breaks
-    if (escapePipe) {
-        cleaned = cleaned.replace(/\|/g, '\\|');
-    } else {
-        cleaned = cleaned.replace(/\s*\|\s*/g, '｜');
+    // Handle pipes based on selected mode
+    switch (pipeStyle) {
+        case 'escape':
+            cleaned = cleaned.replace(/\|/g, '\\|');
+            break;
+        case 'zenkaku':
+            cleaned = cleaned.replace(/\s*\|\s*/g, '｜');
+            break;
+        case 'remove':
+            cleaned = cleaned.replace(/\|/g, '');
+            break;
+        case 'none':
+        default:
+            // Keep as is
+            break;
     }
 
     return cleaned.trim();
