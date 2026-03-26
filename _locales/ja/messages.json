@@ -15,16 +15,16 @@
     "message": "📝 ラベルの整形"
   },
   "bracketTitle": {
-    "message": "カッコ [ ] を全角に変換する"
+    "message": "カッコ [ ] をエスケープする"
   },
   "bracketDesc": {
-    "message": "OFFにすると、カッコ [ ] がエスケープされます（\\[ \\]）"
+    "message": "ONにすると、カッコ [ ] がエスケープされます（\\[ \\]）"
   },
   "pipeTitle": {
-    "message": "パイプ | を全角に変換する"
+    "message": "パイプ | をエスケープする"
   },
   "pipeDesc": {
-    "message": "OFFにすると、パイプ | がエスケープされます（\\|）"
+    "message": "ONにすると、パイプ | がエスケープされます（\\|）"
   },
   "sectUrlFormat": {
     "message": "🔗 URLの形式"

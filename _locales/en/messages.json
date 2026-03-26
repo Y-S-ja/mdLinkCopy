@@ -15,16 +15,16 @@
     "message": "📝 Label Formatting"
   },
   "bracketTitle": {
-    "message": "Convert brackets [ ] to full-width"
+    "message": "Escape brackets [ ]"
   },
   "bracketDesc": {
-    "message": "If OFF, brackets will be escaped (\\[ \\]) in the link text."
+    "message": "If ON, brackets will be escaped (\\[ \\]) in the link text."
   },
   "pipeTitle": {
-    "message": "Convert pipe | to full-width"
+    "message": "Escape pipe |"
   },
   "pipeDesc": {
-    "message": "If OFF, pipes will be escaped (\\|) in the link text."
+    "message": "If ON, pipes will be escaped (\\|) in the link text."
   },
   "sectUrlFormat": {
     "message": "🔗 URL Formatting"

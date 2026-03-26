@@ -12,8 +12,8 @@ const settingIds = [
     'use-readable-url',
     'use-start-end-format',
     'use-readable-fragment',
-    'bracket-to-zenkaku',
-    'pipe-to-zenkaku',
+    'escape-bracket',
+    'escape-pipe',
     'toast-msg-success-type',
     'toast-msg-success',
     'toast-msg-failed-type',
@@ -134,8 +134,8 @@ function enforceCustomInputVisibility() {
                 });
             } else {
                 // If it's 'default', show the localized standard message
-                inputEl.value = type === 'success' ? 
-                    (chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!") : 
+                inputEl.value = type === 'success' ?
+                    (chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!") :
                     (chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed");
             }
         }
