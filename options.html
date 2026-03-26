@@ -24,29 +24,36 @@
                     <h2 data-i18n="sectLabelFormat">📝 ラベルの整形</h2>
                     <div class="setting-item">
                         <div class="info">
-                            <h3 class="setting-title" data-i18n="bracketTitle">カッコ [ ] をエスケープする</h3>
-                            <p class="desc" data-i18n="bracketDesc">ONにすると、カッコ [ ] がエスケープされます（\\[ \\]）</p>
+                            <h3 class="setting-title" data-i18n="bracketTitle">カッコ [ ] の処理</h3>
+                            <p class="desc" data-i18n="bracketDesc">リンク内の [ ] の処理方法を選択します</p>
                         </div>
                         <div class="input-wrapper">
-                            <span id="status-escape-bracket" class="status-message"
-                                data-i18n="statusSaved">保存しました</span>
-                            <label class="switch">
-                                <input type="checkbox" id="escape-bracket">
-                                <span class="slider"></span>
-                            </label>
+                            <span id="status-bracket-style" class="status-message" data-i18n="statusSaved">保存しました</span>
+                            <div class="input-group">
+                                <select id="bracket-style" class="setting-select">
+                                    <option value="escape" data-i18n="optLabelEscape">エスケープ</option>
+                                    <option value="zenkaku" data-i18n="optLabelZenkaku">全角に変換</option>
+                                    <option value="remove" data-i18n="optLabelRemove">削除</option>
+                                    <option value="none" data-i18n="optLabelNone">そのまま</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="setting-item">
                         <div class="info">
-                            <h3 class="setting-title" data-i18n="pipeTitle">パイプ | をエスケープする</h3>
-                            <p class="desc" data-i18n="pipeDesc">ONにすると、パイプ | がエスケープされます（\\|）</p>
+                            <h3 class="setting-title" data-i18n="pipeTitle">パイプ | の処理</h3>
+                            <p class="desc" data-i18n="pipeDesc">リンク内の | の処理方法を選択します（そのまま出力はテーブル崩れに注意）</p>
                         </div>
                         <div class="input-wrapper">
-                            <span id="status-escape-pipe" class="status-message" data-i18n="statusSaved">保存しました</span>
-                            <label class="switch">
-                                <input type="checkbox" id="escape-pipe">
-                                <span class="slider"></span>
-                            </label>
+                            <span id="status-pipe-style" class="status-message" data-i18n="statusSaved">保存しました</span>
+                            <div class="input-group">
+                                <select id="pipe-style" class="setting-select">
+                                    <option value="escape" data-i18n="optLabelEscape">エスケープ</option>
+                                    <option value="zenkaku" data-i18n="optLabelZenkaku">全角に変換</option>
+                                    <option value="remove" data-i18n="optLabelRemove">削除</option>
+                                    <option value="none" data-i18n="optLabelNone">そのまま</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </section>
