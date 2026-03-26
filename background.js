@@ -432,6 +432,9 @@ function safeSelectiveEncode(text) {
     // Using a single regex pass with a capture group and a map for better performance.
     return text.replace(/[%#&()\[\] ,\-?=\n]/g, (char) => {
         if (char === '\n') return '%20';
+        if (char === '-') return '%2D';
+        if (char === '(') return '%28';
+        if (char === ')') return '%29';
         return encodeURIComponent(char);
     });
 }
