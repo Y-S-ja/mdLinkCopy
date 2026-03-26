@@ -24,7 +24,7 @@
     "message": "パイプ | の処理"
   },
   "pipeDesc": {
-    "message": "リンク内の | の処理方法を選択"
+    "message": "リンク内の | の処理方法を選択します"
   },
   "optLabelEscape": {
     "message": "エスケープ"
