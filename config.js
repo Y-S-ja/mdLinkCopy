@@ -18,6 +18,17 @@ const INITIAL_SETTINGS = {
 };
 
 /**
+ * Retrieves the default value for a given setting key.
+ * Handles both literal values and dynamic functions in INITIAL_SETTINGS.
+ * @param {string} key
+ * @returns {*}
+ */
+function getDefaultSetting(key) {
+    const entry = INITIAL_SETTINGS[key];
+    return (typeof entry === 'function') ? entry() : entry;
+}
+
+/**
  * Ensures a settings object has all required keys by filling missing values.
  * @param {Object} items - Raw items from storage.
  * @returns {Object} Normalized settings.
@@ -26,13 +37,10 @@ function normalizeSettings(items) {
     const settings = {};
 
     for (const key in INITIAL_SETTINGS) {
-        const entry = INITIAL_SETTINGS[key];
-        const defaultValue = (typeof entry === 'function') ? entry() : entry;
-
         if (items && items[key] !== undefined && items[key] !== null) {
             settings[key] = items[key];
         } else {
-            settings[key] = defaultValue;
+            settings[key] = getDefaultSetting(key);
         }
     }
     return settings;

@@ -189,8 +189,7 @@ function resolveToastMessage(settings, id) {
         return customValue.trim();
     }
 
-    const entry = INITIAL_SETTINGS[id];
-    return (typeof entry === 'function') ? entry() : entry;
+    return getDefaultSetting(id);
 }
 
 /**

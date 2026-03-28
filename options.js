@@ -122,8 +122,7 @@ function saveSetting(id) {
     switch (el.type) {
         case 'text':
             if (value === '') {
-                const entry = INITIAL_SETTINGS[id];
-                value = (typeof entry === 'function') ? entry() : entry;
+                value = getDefaultSetting(id);
                 el.value = value;
             }
             break;
