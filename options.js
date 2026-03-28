@@ -4,21 +4,7 @@
  * Synchronizes UI elements with chrome.storage.sync and manages live preview 
  * generation for real-time feedback.
  */
-// object化検討
-const settingIds = [
-    'notice-duration',
-    'threshold',
-    'base-len',
-    'use-readable-url',
-    'use-start-end-format',
-    'use-readable-fragment',
-    'bracket-style',
-    'pipe-style',
-    'toast-msg-success-type',
-    'toast-msg-success',
-    'toast-msg-failed-type',
-    'toast-msg-failed'
-];
+const settingIds = Object.keys(INITIAL_SETTINGS);
 
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
@@ -58,23 +44,13 @@ function setElementValue(el, value) {
  */
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
-        if (items['toast-msg-success-type'] === undefined) items['toast-msg-success-type'] = 'default';
-        if (items['toast-msg-failed-type'] === undefined) items['toast-msg-failed-type'] = 'default';
+        const normalized = normalizeSettings(items);
 
         settingIds.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
 
-            let val = items[id];
-
-            // Fallback logic for specialized select mapping
-            if (val === undefined && el.type === 'select-one') {
-                if (id.includes('toast')) {
-                    val = id.includes('success') ? items['toast-msg-success-type'] : items['toast-msg-failed-type'];
-                } else if (id === 'bracket-style' || id === 'pipe-style') {
-                    val = 'escape';
-                }
-            }
+            let val = normalized[id];
 
             // Fallback for text elements
             if (el.type === 'text') {
