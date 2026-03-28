@@ -12,9 +12,9 @@ const INITIAL_SETTINGS = {
     'bracket-style': 'escape',
     'pipe-style': 'escape',
     'toast-msg-success-type': 'default',
-    'toast-msg-success': '',
+    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!",
     'toast-msg-failed-type': 'default',
-    'toast-msg-failed': ''
+    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed"
 };
 
 /**
@@ -23,12 +23,16 @@ const INITIAL_SETTINGS = {
  * @returns {Object} Normalized settings.
  */
 function normalizeSettings(items) {
-    const settings = { ...INITIAL_SETTINGS };
-    if (!items) return settings;
+    const settings = {};
 
     for (const key in INITIAL_SETTINGS) {
-        if (items[key] !== undefined && items[key] !== null) {
+        const entry = INITIAL_SETTINGS[key];
+        const defaultValue = (typeof entry === 'function') ? entry() : entry;
+
+        if (items && items[key] !== undefined && items[key] !== null) {
             settings[key] = items[key];
+        } else {
+            settings[key] = defaultValue;
         }
     }
     return settings;

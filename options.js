@@ -12,8 +12,6 @@ const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
  * Default strings used when i18n isn't available or a text field is blank.
  */
 const defaultTextSettings = {
-    'toast-msg-success': () => chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!",
-    'toast-msg-failed': () => chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed",
     'previewBtnHide': () => chrome.i18n.getMessage("previewBtnHide") || "Hide Preview",
     'previewBtnShow': () => chrome.i18n.getMessage("previewBtnShow") || "Show Preview"
 };
@@ -50,16 +48,7 @@ function restoreOptions() {
             const el = document.getElementById(id);
             if (!el) return;
 
-            let val = normalized[id];
-
-            // Fallback for text elements
-            if (el.type === 'text') {
-                if (val === undefined || (typeof val === 'string' && val.trim() === '')) {
-                    if (defaultTextSettings[id]) val = defaultTextSettings[id]();
-                }
-            }
-
-            if (val !== undefined) setElementValue(el, val);
+            setElementValue(el, normalized[id]);
 
             if (el.type === 'number') {
                 el.dataset.lastSaved = el.value;
@@ -99,24 +88,23 @@ function enforceBaseLenLimit() {
  */
 function enforceCustomInputVisibility() {
     ['success', 'failed'].forEach(type => {
-        const selectEl = document.getElementById(`toast-msg-${type}-type`);
-        const inputEl = document.getElementById(`toast-msg-${type}`);
+        const idOfMsg = `toast-msg-${type}`;
+        const selectEl = document.getElementById(`${idOfMsg}-type`);
+        const inputEl = document.getElementById(idOfMsg);
 
         if (selectEl && inputEl) {
             const isCustom = selectEl.value === 'custom';
             inputEl.disabled = !isCustom;
 
             if (isCustom) {
-                chrome.storage.sync.get(`toast-msg-${type}`, (res) => {
-                    if (res[`toast-msg-${type}`]) {
-                        inputEl.value = res[`toast-msg-${type}`];
+                chrome.storage.sync.get(idOfMsg, (res) => {
+                    if (res[idOfMsg]) {
+                        inputEl.value = res[idOfMsg];
                     }
                 });
             } else {
                 // If it's 'default', show the localized standard message
-                inputEl.value = type === 'success' ?
-                    (chrome.i18n.getMessage("toastCopySuccess") || "Markdown Copied!") :
-                    (chrome.i18n.getMessage("toastCopyFailed") || "Copy Failed");
+                inputEl.value = INITIAL_SETTINGS[idOfMsg];
             }
         }
     });
@@ -133,8 +121,9 @@ function saveSetting(id) {
 
     switch (el.type) {
         case 'text':
-            if (value === '' && defaultTextSettings[id]) {
-                value = defaultTextSettings[id]();
+            if (value === '') {
+                const entry = INITIAL_SETTINGS[id];
+                value = (typeof entry === 'function') ? entry() : entry;
                 el.value = value;
             }
             break;
