@@ -104,7 +104,7 @@ function enforceCustomInputVisibility() {
                 });
             } else {
                 // If it's 'default', show the localized standard message
-                inputEl.value = INITIAL_SETTINGS[idOfMsg];
+                inputEl.value = INITIAL_SETTINGS[idOfMsg]();
             }
         }
     });

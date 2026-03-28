@@ -9,12 +9,6 @@ importScripts('config.js');
 
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
-// Final fallback strings used if i18n resources are missing.
-const OVERRIDE_MESSAGES = {
-    success: "Markdown Copied!",
-    failed: "Copy Failed"
-};
-
 /**
  * Extension entry point: Initialize context menus and default settings.
  */
@@ -180,16 +174,23 @@ function showSystemNotification(message, url = null) {
 }
 
 /**
- * Resolves the appropriate display message based on priority:
- * 1. User custom input (if 'custom' mode)
- * 2. System i18n fallback
- * 3. Hardcoded English fallback string
+ * Resolves the appropriate display message based on settings and ID.
+ * Falls back to INITIAL_SETTINGS if no custom message is set.
+ * 
+ * @param {Object} settings
+ * @param {string} id - toast-msg-success or toast-msg-failed
+ * @returns {string}
  */
-function resolveToastMessage(type, customValue, messageKey, statusKey) {
+function resolveToastMessage(settings, id) {
+    const type = settings[`${id}-type`];
+    const customValue = settings[id];
+
     if (type === 'custom' && customValue?.trim()) {
         return customValue.trim();
     }
-    return chrome.i18n.getMessage(messageKey) || OVERRIDE_MESSAGES[statusKey];
+
+    const entry = INITIAL_SETTINGS[id];
+    return (typeof entry === 'function') ? entry() : entry;
 }
 
 /**
@@ -205,21 +206,8 @@ async function dispatchCopy(tabId, url, text) {
     const settings = await getSettings(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
     const duration = settings['notice-duration'];
 
-    const uiLang = chrome.i18n.getMessage("defaultToastLang") || FALLBACK_LANG;
-
-    const msgSuccess = resolveToastMessage(
-        settings['toast-msg-success-type'] || uiLang,
-        settings['toast-msg-success'],
-        "toastCopySuccess",
-        "success"
-    );
-
-    const msgFailed = resolveToastMessage(
-        settings['toast-msg-failed-type'] || uiLang,
-        settings['toast-msg-failed'],
-        "toastCopyFailed",
-        "failed"
-    );
+    const msgSuccess = resolveToastMessage(settings, 'toast-msg-success');
+    const msgFailed = resolveToastMessage(settings, 'toast-msg-failed');
 
     // Attempt injection. This provides the best UX (in-page toast).
     chrome.scripting.executeScript({
