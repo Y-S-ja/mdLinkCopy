@@ -68,14 +68,14 @@ function enforceBaseLenLimit() {
     const baseLenEl = document.getElementById('base-len');
     if (!thresholdEl || !baseLenEl) return;
 
-    const thresholdVal = parseInt(thresholdEl.value, 10);
+    const thresholdVal = getElementValue(thresholdEl);
     if (isNaN(thresholdVal)) return;
 
     // Boundary rule: baseLen * 2 must be <= threshold to avoid overlapping fragments.
     const maxBaseLen = Math.floor(thresholdVal / 2);
     baseLenEl.max = maxBaseLen;
 
-    const currentBaseLen = parseInt(baseLenEl.value, 10);
+    const currentBaseLen = getElementValue(baseLenEl);
     if (!isNaN(currentBaseLen) && currentBaseLen > maxBaseLen) {
         baseLenEl.value = maxBaseLen;
         chrome.storage.sync.set({ 'base-len': maxBaseLen });
