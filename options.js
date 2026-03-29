@@ -142,18 +142,7 @@ function saveSetting(id) {
     }
 
     chrome.storage.sync.set({ [id]: value }, () => {
-        let statusId;
-        switch (id) {
-            case 'toast-msg-success-type':
-                statusId = 'status-toast-msg-success';
-                break;
-            case 'toast-msg-failed-type':
-                statusId = 'status-toast-msg-failed';
-                break;
-            default:
-                statusId = `status-${id}`;
-        }
-
+        const statusId = el.dataset.statusId || `status-${id}`;
         const status = document.getElementById(statusId);
         if (status) {
             status.classList.add('show');
