@@ -2,6 +2,10 @@
 
 > **一瞬で Markdown リンクをコピー。もっとスマートに、もっとクリエイティブに。**
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Add_to_Chrome-blue?style=flat-square&logo=google-chrome&logoColor=white)](https://chromewebstore.google.com/detail/quick-md-copy/kjbagkmhbdkfghoepjemopmagjbmfiei)
+![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/kjbagkmhbdkfghoepjemopmagjbmfiei?style=flat-square)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kjbagkmhbdkfghoepjemopmagjbmfiei?style=flat-square)
+
 `Quick Md Copy` は、Web ページのタイトルと URL を Markdown 形式 `[タイトル](URL)` で瞬時に取得するための Chrome 拡張機能です。
 単なる URL コピーにとどまらず、**「特定の選択範囲へ直接ジャンプできるリンク（Scroll to Text）」** の自動生成や、Markdown 構文と干渉する記号（`[` `]` `|`）の柔軟な処理など、ドキュメント作成を加速させる機能を備えています。
 
