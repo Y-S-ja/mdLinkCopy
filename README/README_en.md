@@ -2,6 +2,10 @@
 
 > **Copy Markdown links in an instant. Work smarter, stay creative.**
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Add_to_Chrome-blue?style=flat-square&logo=google-chrome&logoColor=white)](https://chromewebstore.google.com/detail/quick-md-copy/kjbagkmhbdkfghoepjemopmagjbmfiei)
+![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/kjbagkmhbdkfghoepjemopmagjbmfiei?style=flat-square)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/kjbagkmhbdkfghoepjemopmagjbmfiei?style=flat-square)
+
 `Quick Md Copy` is a Chrome extension that lets you instantly capture the title and URL of web pages in Markdown format: `[Title](URL)`.
 Far more than a simple URL copier, it speeds up your documentation workflow with features like **Scroll to Text** deep links and flexible handling of characters that conflict with Markdown syntax (`[` `]` `|`).
 
