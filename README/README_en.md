@@ -67,4 +67,4 @@ The options page allows for fine-tuned control over your link generation:
 
 ## 📅 Changelog
 
-For more details, please see [CHANGELOG_en.md](./CHANGELOG/CHANGELOG_en.md).
+For more details, please see [CHANGELOG_en.md](../CHANGELOG/CHANGELOG_en.md).
