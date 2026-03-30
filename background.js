@@ -1,14 +1,16 @@
 /**
  * Quick Md Copy - Background Service Worker
  * 
- * Handles core extension lifecycle events, context menus, global shortcuts, 
- * and complex link generation logic (including Text Fragments and URL sanitization).
+ * Orchestrates the extension lifecycle, manages context menus and global keyboard shortcuts.
+ * Implements resilient link generation logic, including Text Fragments (Scroll to Text) 
+ * and URL sanitization. Employs a robust fallback mechanism using Offscreen Documents 
+ * to handle clipboard operations on restricted pages.
  */
 
 importScripts('config.js');
 
 /**
- * Extension entry point: Initialize context menus and default settings.
+ * Extension Lifecycle: Initialize context menus and initialize default sync settings.
  */
 chrome.runtime.onInstalled.addListener(async () => {
     chrome.contextMenus.create({
@@ -17,11 +19,11 @@ chrome.runtime.onInstalled.addListener(async () => {
         contexts: ["selection"]
     });
 
+    // Populate missing settings with defaults from config.js
     const currentSettings = await chrome.storage.sync.get(Object.keys(INITIAL_SETTINGS));
     const newSettings = {};
     let needsUpdate = false;
 
-    // Set defaults for any missing settings
     for (const [key, defaultValue] of Object.entries(INITIAL_SETTINGS)) {
         if (currentSettings[key] === undefined) {
             newSettings[key] = defaultValue;
@@ -30,13 +32,14 @@ chrome.runtime.onInstalled.addListener(async () => {
     }
 
     if (needsUpdate) {
-        chrome.storage.sync.set(newSettings);
+        await chrome.storage.sync.set(newSettings);
     }
 });
+
 /**
- * Fetches and normalizes settings from sync storage.
- * @param {string[]|null} keys - Specific keys to fetch.
- * @returns {Promise<Object>}
+ * Retrieves and normalizes settings from storage.
+ * @param {string[]|null} keys - Specific setting keys to fetch, or null for all.
+ * @returns {Promise<Object>} A normalized settings object.
  */
 async function getSettings(keys = null) {
     const items = await chrome.storage.sync.get(keys || Object.keys(INITIAL_SETTINGS));
@@ -44,7 +47,7 @@ async function getSettings(keys = null) {
 }
 
 /**
- * Listens for preview requests from the options page.
+ * Message Hub: Listens for preview requests from the Options page.
  */
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.action === 'get-preview') {
@@ -62,7 +65,7 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
 });
 
 /**
- * Listens for context menu clicks.
+ * Context Menu Handler: Triggers markdown link generation for selected text.
  */
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "copy-selection-markdown") {
@@ -71,14 +74,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 /**
- * Listens for action button clicks (page-wide copy).
+ * Action Button Handler: Triggers basic page-wide markdown link generation.
  */
 chrome.action.onClicked.addListener((tab) => {
     copyPageLink(tab);
 });
 
 /**
- * Handles global keyboard shortcuts for page and selection copy.
+ * Keyboard Command Handler: Maps global shortcuts to respective copy flows.
  */
 chrome.commands.onCommand.addListener(async (command, tab) => {
     switch (command) {
@@ -92,8 +95,9 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 });
 
 /**
- * Script injected into the page to expand the selection to the nearest word border.
- * Note: uses selection.modify which is a standard Chromium feature.
+ * In-page Selection Expander: Logic to expand selection to nearest word boundaries.
+ * Injected into the target tab. Uses the standard selection.modify API.
+ * @returns {string|null} The expanded text or null if no selection exists.
  */
 function getExpandedSelectionTextInPage() {
     const selection = window.getSelection();
@@ -105,14 +109,14 @@ function getExpandedSelectionTextInPage() {
     const originalRange = range.cloneRange();
 
     try {
-        // Find start of the word
+        // Expand start to word boundary
         selection.collapseToStart();
         selection.modify('move', 'forward', 'character');
         selection.modify('move', 'backward', 'word');
         const startContainer = selection.anchorNode;
         const startOffset = selection.anchorOffset;
 
-        // Find end of the word
+        // Expand end to word boundary
         selection.removeAllRanges();
         selection.addRange(originalRange);
         selection.collapseToEnd();
@@ -126,7 +130,7 @@ function getExpandedSelectionTextInPage() {
         expandedRange.setEnd(endContainer, endOffset);
         const text = expandedRange.toString();
 
-        // Restore original selection
+        // Cleanup: Restore original user selection
         selection.removeAllRanges();
         selection.addRange(originalRange);
 
@@ -139,8 +143,7 @@ function getExpandedSelectionTextInPage() {
 }
 
 /**
- * Checks if a URL uses a standard web protocol (http or https).
- * Links to other protocols (chrome://, file://, etc.) generally cannot be opened directly.
+ * Protocol Validator: Ensures a URL uses standard HTTP/HTTPS schemes.
  * @param {string} urlStr
  * @returns {boolean}
  */
@@ -154,8 +157,9 @@ function isStandardWebProtocol(urlStr) {
 }
 
 /**
- * Shows a system notification as a fallback when UI toast injection is not possible.
- * @param {string} message
+ * Fallback UI: Displays a browser-level notification when in-page injection is blocked.
+ * @param {string} message - The localized message to display.
+ * @param {string|null} url - The page URL for determining restricted status context.
  */
 function showSystemNotification(message, url = null) {
     const defaultMsg = url && !isStandardWebProtocol(url)
@@ -172,12 +176,11 @@ function showSystemNotification(message, url = null) {
 }
 
 /**
- * Resolves the appropriate display message based on settings and ID.
- * Falls back to INITIAL_SETTINGS if no custom message is set.
- * 
- * @param {Object} settings
- * @param {string} id - toast-msg-success or toast-msg-failed
- * @returns {string}
+ * Message Resolver: Determines the display text for success/failure notifications.
+ * Prioritizes user custom configurations over defaults.
+ * @param {Object} settings - Current localized/normalized settings.
+ * @param {string} id - The ID prefix for the target message (success/failed).
+ * @returns {string} The resolved message.
  */
 function resolveToastMessage(settings, id) {
     const type = settings[`${id}-type`];
@@ -191,13 +194,14 @@ function resolveToastMessage(settings, id) {
 }
 
 /**
- * Coordinated clipboard copy flow.
- * Attempts script injection to show UI toast first. 
- * Falls back to system notifications via offscreen document for restricted/failed cases.
+ * Resilient Dispatcher: Executes the clipboard operation.
+ * 1. Attempts script injection for best-in-class UX (in-page toast).
+ * 2. If injection fails (e.g., CSP restriction, New Tab page), falls back to 
+ *    Offscreen Document + System Notification.
  * 
  * @param {number} tabId
  * @param {string} url
- * @param {string} text - Link content to copy.
+ * @param {string} text - The generated markdown link to copy.
  */
 async function dispatchCopy(tabId, url, text) {
     const settings = await getSettings(['notice-duration', 'toast-msg-success-type', 'toast-msg-success', 'toast-msg-failed-type', 'toast-msg-failed']);
@@ -206,13 +210,12 @@ async function dispatchCopy(tabId, url, text) {
     const msgSuccess = resolveToastMessage(settings, 'toast-msg-success');
     const msgFailed = resolveToastMessage(settings, 'toast-msg-failed');
 
-    // Attempt injection. This provides the best UX (in-page toast).
     chrome.scripting.executeScript({
         target: { tabId: tabId },
         func: copyToClipboardWithNotice,
         args: [text, duration, msgSuccess, msgFailed]
     }).catch(async () => {
-        // Fallback: offscreen document handles clipboard access when scripts are blocked or tab is dead.
+        // Fallback for restricted pages (Chrome Settings, Extension store, etc.)
         const success = await copyViaOffscreen(text);
 
         let statusKey;
@@ -221,14 +224,15 @@ async function dispatchCopy(tabId, url, text) {
         } else {
             statusKey = isStandardWebProtocol(url) ? "notifyCopyFailed" : "notifyCopyFailedRestricted";
         }
-
         showSystemNotification(chrome.i18n.getMessage(statusKey));
     });
 }
 
 /**
- * Handles link generation For text selection.
- * Generates an 'Scroll to Text' fragment.
+ * Implementation for Selection Copy: Integrates Text Fragment logic.
+ * @param {string} rawSelection - Text to expand into deep link.
+ * @param {string} rawUrl - Target URL.
+ * @param {chrome.tabs.Tab} tab - Target tab metadata for title extraction.
  */
 async function performSelectionCopy(rawSelection, rawUrl, tab) {
     const settings = await getSettings([
@@ -241,7 +245,8 @@ async function performSelectionCopy(rawSelection, rawUrl, tab) {
 }
 
 /**
- * Handles basic page-link generation.
+ * Implementation for Page-wide Copy: Basic markdown generation.
+ * @param {chrome.tabs.Tab} tab
  */
 async function copyPageLink(tab) {
     const settings = await getSettings(['use-readable-url', 'bracket-style', 'pipe-style']);
@@ -250,8 +255,10 @@ async function copyPageLink(tab) {
 }
 
 /**
- * Helper for copying content when page permissions are limited (e.g. New Tab page).
- * Necessary because service workers do not have direct clipboard access.
+ * Offscreen Clipboard Controller: Accesses Clipboard API from a background context.
+ * Required because Service Workers lack direct document/clipboard access.
+ * @param {string} text - Content to copy.
+ * @returns {Promise<boolean>} Success status.
  */
 async function copyViaOffscreen(text) {
     try {
@@ -273,7 +280,12 @@ async function copyViaOffscreen(text) {
 }
 
 /**
- * Script injected into the page to copy text and show a temporary UI notification.
+ * Content Script Injection: Copies text to clipboard and displays a fleeting UI notice.
+ * Designed for injected execution. Avoids 스타일(style) collisions via high z-index.
+ * @param {string} text
+ * @param {number} duration - Display time in ms.
+ * @param {string} msgSuccess
+ * @param {string} msgFailed
  */
 async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) {
     try {
@@ -286,6 +298,7 @@ async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) 
     function showNotice(message, bgColor, displayMs) {
         const notice = document.createElement("div");
         notice.textContent = message;
+        // Aesthetic styling for in-page notification
         Object.assign(notice.style, {
             position: "fixed",
             top: "20px",
@@ -315,16 +328,19 @@ async function copyToClipboardWithNotice(text, duration, msgSuccess, msgFailed) 
 }
 
 /**
- * Coordinated selection copy flow from different entry points.
- * Tries to expand selection via script, but falls back to provided text if injection fails.
+ * Selection Link Flow Coordinator: Master controller for deep link creation.
+ * Resolves selection text via script expansion or fallback context data.
+ * Handles restriction-based error scenarios.
+ * 
  * @param {chrome.tabs.Tab} tab
- * @param {string|null} fallbackText
+ * @param {string|null} fallbackText - Selection text provided by context menu API.
  */
 async function handleSelectionCopyFlow(tab, fallbackText = null) {
     let finalSelection = fallbackText;
     let scriptFailed = false;
 
     try {
+        // Attempt expansion to word boundary for cleaner Text Fragments
         const result = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: getExpandedSelectionTextInPage
@@ -339,20 +355,20 @@ async function handleSelectionCopyFlow(tab, fallbackText = null) {
     if (finalSelection) {
         performSelectionCopy(finalSelection, tab.url, tab);
     } else {
-        // If script failed and we have no fallback, it's a restricted page shortcut attempt
         const msgKey = scriptFailed ? "errShortcutRestricted" : "errNoTextSelected";
         showSystemNotification(chrome.i18n.getMessage(msgKey), tab.url);
     }
 }
 
 /**
- * Core utility to assemble a Markdown link.
- * Integrates title cleaning, URL formatting, and text fragment generation.
- * @param {string} title - Raw page or demo title.
- * @param {string} url - Raw URL.
- * @param {string|null} selectionText - Optional selected text for fragments.
- * @param {Object} settings - Normalized settings object.
- * @returns {string} The formatted Markdown link.
+ * Core Link Assembler: Primary utility for markdown construction.
+ * Pure function integrating title cleaning, URL formatting, and Fragment calculation.
+ * 
+ * @param {string} title
+ * @param {string} url
+ * @param {string|null} selectionText
+ * @param {Object} settings
+ * @returns {string} Fully constructed Markdown link.
  */
 function createMarkdownLink(title, url, selectionText, settings) {
     const cleanedTitle = cleanLabel(title, settings['bracket-style'], settings['pipe-style']);
@@ -375,14 +391,14 @@ function createMarkdownLink(title, url, selectionText, settings) {
 }
 
 /**
- * Encodes specific characters to keep 'Scroll to Text' fragments readable 
- * while ensuring they are Markdown-safe (escaping parentheses and spaces).
+ * Markdown-Specific Encoder: Retains readability for Scroll to Text fragments while 
+ * escaping characters that break Markdown link syntax (parentheses and spaces).
  * @param {string} text
- * @returns {string}
+ * @returns {string} URL-encoded string safe for Markdown.
  */
 function safeSelectiveEncode(text) {
-    // Replace characters that could break Markdown links ([])() or Text Fragment syntax (#&,=-).
-    // Using a single regex pass with a capture group and a map for better performance.
+    // Escapes # & ( ) [ ] , - ? = and spaces. 
+    // Optimization: Regex callback used to minimize repeated string allocations.
     return text.replace(/[%#&()\[\] ,\-?=\n]/g, (char) => {
         if (char === '\n') return '%20';
         if (char === '-') return '%2D';
@@ -393,11 +409,13 @@ function safeSelectiveEncode(text) {
 }
 
 /**
- * Sanitizes page titles for use as Markdown link labels.
+ * Label Sanitizer: Cleans page titles for use as Markdown link descriptions.
+ * Handles bracket/pipe conflicts based on user preferences.
+ * 
  * @param {string} text
- * @param {string} bracketStyle
- * @param {string} pipeStyle
- * @returns {string}
+ * @param {string} bracketStyle - 'escape'|'zenkaku'|'remove'|'none'
+ * @param {string} pipeStyle - 'escape'|'zenkaku'|'remove'|'none'
+ * @returns {string} Sanitized single-line string.
  */
 function cleanLabel(text, bracketStyle, pipeStyle) {
     if (!text) return "";
@@ -441,26 +459,32 @@ function cleanLabel(text, bracketStyle, pipeStyle) {
 }
 
 /**
- * Generate Text Fragment parameters based on settings.
- * Supports shortening long texts into a 'start,end' format.
+ * Fragment Parameter Generator: Calculates deep-linking anchor text.
+ * Implements Google's 'Scroll to Text' specification with optional shortening.
+ * Employes Intl.Segmenter for language-aware word boundary detection.
  */
 function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useReadableFragment) {
     const cleanText = text.trim().replace(/\s+/g, ' ');
     const encoder = useReadableFragment ? safeSelectiveEncode : encodeURIComponent;
 
+    // Use full text if within threshold or feature is disabled
     if (cleanText.length <= threshold || !useStartEnd) {
         return encoder(cleanText);
     }
 
     let segmenter;
     try {
+        // Use Intl.Segmenter for robust word-level boundary detection across different languages.
         segmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
     } catch (e) {
         segmenter = null;
     }
 
     /**
-     * Helper to find a word boundary near a specific index.
+     * Inner helper to resolve the logical word boundary nearest to the target index.
+     * @param {string} textStr
+     * @param {number} targetIdx
+     * @returns {number} The optimized boundary index.
      */
     function findBestBoundary(textStr, targetIdx) {
         if (!segmenter) return targetIdx;
@@ -474,22 +498,19 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
             if (start <= targetIdx && end >= targetIdx) {
                 const distToStart = targetIdx - start;
                 const distToEnd = end - targetIdx;
-                // Return start or end based on proximity, preferring end at the very start
                 return (distToStart < distToEnd && start > 0) ? start : end;
             }
             lastBoundary = end;
-            if (start > targetIdx) break; // Optimization: stop scanning once we pass target
+            if (start > targetIdx) break;
         }
         return lastBoundary;
     }
 
-    // Optimization: Only scan relevant parts of the text for boundaries
-    // For startPart: scan double the baseLen at the beginning
+    // Optimization: Calculate 'start' and 'end' parts separately based on scan ranges.
     const startScanRange = Math.min(cleanText.length, baseLen * 2);
     const actualStartEndIdx = findBestBoundary(cleanText.substring(0, startScanRange), baseLen);
     const startPart = cleanText.substring(0, actualStartEndIdx);
 
-    // For endPart: scan double the baseLen at the end
     const endScanOffset = Math.max(0, cleanText.length - baseLen * 2);
     const endScanText = cleanText.substring(endScanOffset);
     const targetIdxInSuffix = cleanText.length - baseLen - endScanOffset;
@@ -497,6 +518,7 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
     const actualEndStartIdx = endScanOffset + boundaryInSuffix;
     const endPart = cleanText.substring(actualEndStartIdx);
 
+    // Fallback: If truncation overlap occurs unexpectedly, return full encoded text.
     if (actualStartEndIdx >= actualEndStartIdx) {
         return encoder(cleanText);
     }
@@ -505,8 +527,10 @@ function generateTextFragmentParam(text, threshold, baseLen, useStartEnd, useRea
 }
 
 /**
- * Decodes URL to make it readable in Markdown, while re-encoding 
- * characters that break Markdown syntax.
+ * URL Beautifier: Converts encoded URLs to a readable format.
+ * Re-escapes Markdown conflict characters (parentheses/spaces) without full Percent-encoding.
+ * @param {string} rawUrl
+ * @returns {string} Human-readable but valid Markdown URL.
  */
 function getReadableUrl(rawUrl) {
     try {
