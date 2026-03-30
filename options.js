@@ -195,9 +195,7 @@ function togglePreviewPanel(show, animate = true) {
     const btn = document.getElementById('toggle-preview');
     if (!panel || !btn) return;
 
-    if (animate) {
-        panel.classList.add('is-animating');
-    }
+    if (animate) panel.classList.add('is-animating');
 
     if (show) {
         panel.classList.remove('hidden');
@@ -212,9 +210,7 @@ function togglePreviewPanel(show, animate = true) {
     }
 
     if (animate) {
-        setTimeout(() => {
-            panel.classList.remove('is-animating');
-        }, 400);
+        setTimeout(() => panel.classList.remove('is-animating'), 400);
     }
 
     // Persist panel visibility state locally
