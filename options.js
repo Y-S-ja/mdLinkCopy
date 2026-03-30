@@ -2,14 +2,15 @@
  * Quick Md Copy - Options Page Logic
  * 
  * Synchronizes UI elements with chrome.storage.sync and manages live preview 
- * generation for real-time feedback.
+ * generation for real-time feedback. Implements event delegation for robust
+ * and maintainable event handling.
  */
 const settingIds = Object.keys(INITIAL_SETTINGS);
 
 const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
 
 /**
- * Default strings used when i18n isn't available or a text field is blank.
+ * Default localization handlers for dynamic UI text elements.
  */
 const defaultTextSettings = {
     'previewBtnHide': () => chrome.i18n.getMessage("previewBtnHide") || "Hide Preview",
@@ -18,6 +19,8 @@ const defaultTextSettings = {
 
 /**
  * Gets the appropriately typed value from a DOM element.
+ * @param {HTMLElement} el - The target input or select element.
+ * @returns {any} The casted value based on element type.
  */
 function getElementValue(el) {
     if (el.type === 'checkbox') return el.checked;
@@ -27,7 +30,9 @@ function getElementValue(el) {
 }
 
 /**
- * Sets the value of a DOM element based on its type.
+ * Sets the value of a DOM element correctly based on its interactive type.
+ * @param {HTMLElement} el - The target DOM element.
+ * @param {any} value - The value to apply.
  */
 function setElementValue(el, value) {
     if (el.type === 'checkbox') {
@@ -39,6 +44,7 @@ function setElementValue(el, value) {
 
 /**
  * Loads current settings from chrome.storage.sync and populates the UI.
+ * Ensures data integrity via normalizeSettings before applying values to elements.
  */
 function restoreOptions() {
     chrome.storage.sync.get(settingIds, (items) => {
@@ -50,6 +56,7 @@ function restoreOptions() {
 
             setElementValue(el, normalized[id]);
 
+            // Track last saved state for number inputs to reduce redundant storage writes
             if (el.type === 'number') {
                 el.dataset.lastSaved = el.value;
             }
@@ -61,7 +68,8 @@ function restoreOptions() {
 }
 
 /**
- * Ensures 'base-len' is proportional to the 'threshold' to maintain valid fragments.
+ * Sanitizes 'base-len' proportional to the 'threshold' to maintain valid fragments.
+ * Boundary rule: baseLen * 2 must be <= threshold to avoid overlapping source fragments.
  */
 function enforceBaseLenLimit() {
     const thresholdEl = document.getElementById('threshold');
@@ -71,7 +79,6 @@ function enforceBaseLenLimit() {
     const thresholdVal = getElementValue(thresholdEl);
     if (isNaN(thresholdVal)) return;
 
-    // Boundary rule: baseLen * 2 must be <= threshold to avoid overlapping fragments.
     const maxBaseLen = Math.floor(thresholdVal / 2);
     baseLenEl.max = maxBaseLen;
 
@@ -83,8 +90,8 @@ function enforceBaseLenLimit() {
 }
 
 /**
- * Handles the visibility and interactivity of custom message input fields based 
- * on the selected preview language/type.
+ * Manages visibility of custom notification input fields.
+ * Toggles disabled state and resolves localized defaults for 'default' type selections.
  */
 function enforceCustomInputVisibility() {
     ['success', 'failed'].forEach(type => {
@@ -103,7 +110,7 @@ function enforceCustomInputVisibility() {
                     }
                 });
             } else {
-                // If it's 'default', show the localized standard message
+                // Show localized standard message as visual placeholder
                 inputEl.value = INITIAL_SETTINGS[idOfMsg]();
             }
         }
@@ -111,8 +118,9 @@ function enforceCustomInputVisibility() {
 }
 
 /**
- * Persists a single setting to chrome.storage.sync with validation.
- * @param {string} id - The DOM ID of the setting element.
+ * Persists a single setting value to chrome.storage.sync with type-based validation.
+ * Triggers UI feedback (status messages) upon successful save.
+ * @param {string} id - The setting key/DOM ID to save.
  */
 function saveSetting(id) {
     const el = document.getElementById(id);
@@ -141,6 +149,7 @@ function saveSetting(id) {
     }
 
     chrome.storage.sync.set({ [id]: value }, () => {
+        // Display toast-style feedback next to the modified input
         const statusId = el.dataset.statusId || `status-${id}`;
         const status = document.getElementById(statusId);
         if (status) {
@@ -158,7 +167,8 @@ function saveSetting(id) {
 }
 
 /**
- * Updates the preview panel by sending current UI states to the background script.
+ * Refreshes the real-time preview panel by requesting a generated link 
+ * from the background script using current UI state.
  */
 function updatePreview() {
     const currentSettings = {};
@@ -186,9 +196,9 @@ function updatePreview() {
 }
 
 /**
- * Toggle the visibility of the preview panel with animation.
- * @param {boolean} show - Whether to show the panel.
- * @param {boolean} animate - Whether to apply transition effects.
+ * Toggles the preview panel's visibility state.
+ * @param {boolean} show - Target visibility state.
+ * @param {boolean} animate - Enable CSS transition effects.
  */
 function togglePreviewPanel(show, animate = true) {
     const panel = document.getElementById('preview-panel');
@@ -213,15 +223,15 @@ function togglePreviewPanel(show, animate = true) {
         setTimeout(() => panel.classList.remove('is-animating'), 400);
     }
 
-    // Persist panel visibility state locally
     chrome.storage.local.set({ 'preview-visible': show });
 }
 
 /**
- * Binds event listeners using event delegation for cleaner management.
+ * Binds global event listeners using event delegation for efficient interaction handling.
+ * Reduces the number of listeners and manages dynamic elements like reset buttons.
  */
 function setupEventListeners() {
-    // 1. Settings change (select, checkbox, number)
+    // 1. Unified Settings Change Pipeline
     document.addEventListener('change', (e) => {
         const target = e.target;
         const id = target.id;
@@ -230,7 +240,7 @@ function setupEventListeners() {
             if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
             if (id.includes('-type')) enforceCustomInputVisibility();
 
-            // Text inputs that are disabled should not trigger save (defaults)
+            // Prevent saving on disabled standard notification templates
             if (target.tagName === 'INPUT' && target.type === 'text' && target.disabled) return;
 
             saveSetting(id);
@@ -238,7 +248,7 @@ function setupEventListeners() {
         }
     });
 
-    // 2. Focus-out/Enter for number inputs (explicit save)
+    // 2. Specialized Number Input Validation (Blur/Enter)
     document.addEventListener('blur', (e) => {
         if (e.target.type === 'number') {
             const id = e.target.id;
@@ -247,15 +257,15 @@ function setupEventListeners() {
                 updatePreview();
             }
         }
-    }, true); // Use capture for blur
+    }, true); // Use capture to detect focus-out on inputs
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.target.type === 'number') {
-            e.target.blur(); // Trigger the blur handler above
+            e.target.blur(); // Triggers the explicit blur save handler
         }
     });
 
-    // 3. Click actions (Toggle preview, Reset buttons)
+    // 3. Centralized Action Button Handler
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button, .reset-btn');
         if (!btn) return;
@@ -270,7 +280,7 @@ function setupEventListeners() {
                 const defaultVal = getDefaultSetting(resetId);
                 setElementValue(el, defaultVal);
 
-                // Re-enforce proportional rules if necessary
+                // Sanitize dependent UI states after reset
                 if (resetId === 'threshold' || resetId === 'base-len') enforceBaseLenLimit();
                 if (resetId.includes('-type')) enforceCustomInputVisibility();
 
@@ -280,7 +290,7 @@ function setupEventListeners() {
         }
     });
 
-    // 4. Live preview updates for demo text fields
+    // 4. Live Preview Demo Controls
     document.addEventListener('input', (e) => {
         const id = e.target.id;
         if (id === 'demo-title' || id === 'demo-selection') {
@@ -290,10 +300,11 @@ function setupEventListeners() {
 }
 
 /**
- * Entry point for the options page. 
- * Initializes translations, restores settings, and binds event listeners.
+ * Initializes the options UI.
+ * Applies localization directly to data-i18n elements and restores user settings.
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply translations to the entire page
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
         if (msg) {
@@ -305,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Apply translations to accessibility titles
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
         const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n-title'));
         if (msg) el.title = msg;
@@ -312,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     restoreOptions();
 
+    // Recover previous preview panel state
     chrome.storage.local.get('preview-visible', (res) => {
         togglePreviewPanel(res['preview-visible'] !== false, false);
     });
