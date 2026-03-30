@@ -29,13 +29,23 @@
                         </div>
                         <div class="input-wrapper">
                             <span id="status-bracket-style" class="status-message" data-i18n="statusSaved">保存しました</span>
-                            <div class="input-group">
-                                <select id="bracket-style" class="setting-select">
-                                    <option value="escape" data-i18n="optLabelEscape">エスケープ</option>
-                                    <option value="zenkaku" data-i18n="optLabelZenkaku">全角に変換</option>
-                                    <option value="remove" data-i18n="optLabelRemove">削除</option>
-                                    <option value="none" data-i18n="optLabelNone">そのまま</option>
-                                </select>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="bracket-style"
+                                    data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <div class="input-group">
+                                    <select id="bracket-style" class="setting-select">
+                                        <option value="escape" data-i18n="optLabelEscape">エスケープ</option>
+                                        <option value="zenkaku" data-i18n="optLabelZenkaku">全角に変換</option>
+                                        <option value="remove" data-i18n="optLabelRemove">削除</option>
+                                        <option value="none" data-i18n="optLabelNone">そのまま</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -46,13 +56,22 @@
                         </div>
                         <div class="input-wrapper">
                             <span id="status-pipe-style" class="status-message" data-i18n="statusSaved">保存しました</span>
-                            <div class="input-group">
-                                <select id="pipe-style" class="setting-select">
-                                    <option value="escape" data-i18n="optLabelEscape">エスケープ</option>
-                                    <option value="zenkaku" data-i18n="optLabelZenkaku">全角に変換</option>
-                                    <option value="remove" data-i18n="optLabelRemove">削除</option>
-                                    <option value="none" data-i18n="optLabelNone">そのまま</option>
-                                </select>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="pipe-style" data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <div class="input-group">
+                                    <select id="pipe-style" class="setting-select">
+                                        <option value="escape" data-i18n="optLabelEscape">エスケープ</option>
+                                        <option value="zenkaku" data-i18n="optLabelZenkaku">全角に変換</option>
+                                        <option value="remove" data-i18n="optLabelRemove">削除</option>
+                                        <option value="none" data-i18n="optLabelNone">そのまま</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -68,10 +87,20 @@
                         <div class="input-wrapper">
                             <span id="status-use-readable-url" class="status-message"
                                 data-i18n="statusSaved">保存しました</span>
-                            <label class="switch">
-                                <input type="checkbox" id="use-readable-url">
-                                <span class="slider"></span>
-                            </label>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="use-readable-url"
+                                    data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <label class="switch">
+                                    <input type="checkbox" id="use-readable-url">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="setting-item">
@@ -82,10 +111,20 @@
                         <div class="input-wrapper">
                             <span id="status-use-readable-fragment" class="status-message"
                                 data-i18n="statusSaved">保存しました</span>
-                            <label class="switch">
-                                <input type="checkbox" id="use-readable-fragment">
-                                <span class="slider"></span>
-                            </label>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="use-readable-fragment"
+                                    data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <label class="switch">
+                                    <input type="checkbox" id="use-readable-fragment">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -101,10 +140,20 @@
                         <div class="input-wrapper">
                             <span id="status-use-start-end-format" class="status-message"
                                 data-i18n="statusSaved">保存しました</span>
-                            <label class="switch">
-                                <input type="checkbox" id="use-start-end-format">
-                                <span class="slider"></span>
-                            </label>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="use-start-end-format"
+                                    data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <label class="switch">
+                                    <input type="checkbox" id="use-start-end-format">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="setting-item">
@@ -114,9 +163,18 @@
                         </div>
                         <div class="input-wrapper">
                             <span id="status-threshold" class="status-message" data-i18n="statusSaved">保存しました</span>
-                            <div class="input-group">
-                                <input type="number" id="threshold" min="30" max="200" step="5">
-                                <span class="unit" data-i18n="unitChar">文字</span>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="threshold" data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <div class="input-group">
+                                    <input type="number" id="threshold" min="30" max="200" step="5">
+                                    <span class="unit" data-i18n="unitChar">文字</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -127,9 +185,18 @@
                         </div>
                         <div class="input-wrapper">
                             <span id="status-base-len" class="status-message" data-i18n="statusSaved">保存しました</span>
-                            <div class="input-group">
-                                <input type="number" id="base-len" min="10" max="50" step="1">
-                                <span class="unit" data-i18n="unitChar">文字</span>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="base-len" data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <div class="input-group">
+                                    <input type="number" id="base-len" min="10" max="50" step="1">
+                                    <span class="unit" data-i18n="unitChar">文字</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -145,9 +212,19 @@
                         <div class="input-wrapper">
                             <span id="status-notice-duration" class="status-message"
                                 data-i18n="statusSaved">保存しました</span>
-                            <div class="input-group">
-                                <input type="number" id="notice-duration" min="500" max="5000" step="100">
-                                <span class="unit" data-i18n="unitMS">ms</span>
+                            <div class="input-control-row">
+                                <button class="reset-btn" data-reset-id="notice-duration"
+                                    data-i18n-title="btnResetTooltip">
+                                    <svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <div class="input-group">
+                                    <input type="number" id="notice-duration" min="500" max="5000" step="100">
+                                    <span class="unit" data-i18n="unitMS">ms</span>
+                                </div>
                             </div>
                         </div>
                     </div>

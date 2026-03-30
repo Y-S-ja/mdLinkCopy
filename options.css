@@ -137,6 +137,42 @@ header {
     margin-bottom: 4px;
 }
 
+.input-control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+.reset-btn {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--text-light);
+    opacity: 0.3;
+    transition: var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    outline: none;
+    flex-shrink: 0;
+}
+
+.reset-btn:hover {
+    opacity: 1;
+    color: var(--primary);
+    background: rgba(79, 70, 229, 0.1);
+}
+
+.reset-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
 .desc {
     font-size: 0.85rem;
     color: var(--text-light);

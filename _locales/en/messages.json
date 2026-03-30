@@ -184,5 +184,8 @@
   },
   "toastCopyFailed": {
     "message": "Copy Failed"
+  },
+  "btnResetTooltip": {
+    "message": "Reset to default"
   }
 }
