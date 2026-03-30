@@ -270,9 +270,17 @@ function setupEventListeners() {
             togglePreviewPanel(isHidden);
         } else if (btn.classList.contains('reset-btn')) {
             const resetId = btn.dataset.resetId;
-            if (resetId) {
-                console.log('Reset action to be implemented for:', resetId);
-                // Step 2: Implement reset logic here
+            const el = document.getElementById(resetId);
+            if (el) {
+                const defaultVal = getDefaultSetting(resetId);
+                setElementValue(el, defaultVal);
+
+                // Re-enforce proportional rules if necessary
+                if (resetId === 'threshold' || resetId === 'base-len') enforceBaseLenLimit();
+                if (resetId.includes('-type')) enforceCustomInputVisibility();
+
+                saveSetting(resetId);
+                updatePreview();
             }
         }
     });
