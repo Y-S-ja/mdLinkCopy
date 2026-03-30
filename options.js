@@ -223,49 +223,67 @@ function togglePreviewPanel(show, animate = true) {
 }
 
 /**
- * Binds event listeners to UI elements for real-time updates and persistence.
+ * Binds event listeners using event delegation for cleaner management.
  */
 function setupEventListeners() {
-    settingIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
+    // 1. Settings change (select, checkbox, number)
+    document.addEventListener('change', (e) => {
+        const target = e.target;
+        const id = target.id;
 
-        const performSave = () => {
-            if (el.type === 'number' && el.value === el.dataset.lastSaved) return;
+        if (id && settingIds.includes(id)) {
             if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
             if (id.includes('-type')) enforceCustomInputVisibility();
 
-            if (el.tagName === 'INPUT' && el.type === 'text' && el.disabled) return;
+            // Text inputs that are disabled should not trigger save (defaults)
+            if (target.tagName === 'INPUT' && target.type === 'text' && target.disabled) return;
 
             saveSetting(id);
             updatePreview();
-        };
-
-        if (el.type === 'number') {
-            el.addEventListener('change', () => {
-                if (id === 'threshold' || id === 'base-len') enforceBaseLenLimit();
-                updatePreview();
-            });
-            el.addEventListener('keydown', (e) => { if (e.key === 'Enter') performSave(); });
-            el.addEventListener('blur', performSave);
-        } else {
-            el.addEventListener('change', performSave);
         }
     });
 
-    // Preview specific inputs
-    ['demo-title', 'demo-selection'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', updatePreview);
+    // 2. Focus-out/Enter for number inputs (explicit save)
+    document.addEventListener('blur', (e) => {
+        if (e.target.type === 'number') {
+            const id = e.target.id;
+            if (e.target.value !== e.target.dataset.lastSaved) {
+                saveSetting(id);
+                updatePreview();
+            }
+        }
+    }, true); // Use capture for blur
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.type === 'number') {
+            e.target.blur(); // Trigger the blur handler above
+        }
     });
 
-    const toggleBtn = document.getElementById('toggle-preview');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
+    // 3. Click actions (Toggle preview, Reset buttons)
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button, .reset-btn');
+        if (!btn) return;
+
+        if (btn.id === 'toggle-preview') {
             const isHidden = document.getElementById('preview-panel').classList.contains('hidden');
             togglePreviewPanel(isHidden);
-        });
-    }
+        } else if (btn.classList.contains('reset-btn')) {
+            const resetId = btn.dataset.resetId;
+            if (resetId) {
+                console.log('Reset action to be implemented for:', resetId);
+                // Step 2: Implement reset logic here
+            }
+        }
+    });
+
+    // 4. Live preview updates for demo text fields
+    document.addEventListener('input', (e) => {
+        const id = e.target.id;
+        if (id === 'demo-title' || id === 'demo-selection') {
+            updatePreview();
+        }
+    });
 }
 
 /**
