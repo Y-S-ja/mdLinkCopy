@@ -26,7 +26,8 @@ Shortcuts for those who want to get things done without touching the mouse:
 - Copy deep link for the current selection
 
 > [!NOTE]
-> Keyboard shortcuts can be customized in the extension's options page.
+> Keyboard shortcuts can be customized in the browser's extension management settings.
+> (Right-click icon > Manage Extension > Keyboard shortcuts)
 
 ## 🚀 How to Use
 
