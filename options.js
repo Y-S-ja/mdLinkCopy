@@ -202,12 +202,12 @@ function togglePreviewPanel(show, animate = true) {
     if (show) {
         panel.classList.remove('hidden');
         btn.textContent = '×';
-        btn.title = defaultTextSettings['previewBtnHide'];
+        btn.title = defaultTextSettings['previewBtnHide']();
         btn.classList.add('active');
     } else {
         panel.classList.add('hidden');
         btn.textContent = '👀';
-        btn.title = defaultTextSettings['previewBtnShow'];
+        btn.title = defaultTextSettings['previewBtnShow']();
         btn.classList.remove('active');
     }
 
