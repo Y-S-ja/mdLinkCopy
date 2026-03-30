@@ -122,8 +122,7 @@ function saveSetting(id) {
     switch (el.type) {
         case 'text':
             if (value === '') {
-                value = getDefaultSetting(id);
-                el.value = value;
+                el.value = getDefaultSetting(id);
             }
             break;
         case 'number':
