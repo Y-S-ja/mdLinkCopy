@@ -7,8 +7,6 @@
 
 importScripts('config.js');
 
-const FALLBACK_LANG = chrome.runtime.getManifest().default_locale || 'en';
-
 /**
  * Extension entry point: Initialize context menus and default settings.
  */
